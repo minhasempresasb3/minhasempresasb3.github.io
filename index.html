@@ -16,11 +16,13 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 .btn { width: 100%; padding: 14px; background: #007AFF; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; }
 .resultado { margin-top: 20px; padding: 16px; background: #f0f8ff; border-radius: 10px; text-align: center; font-size: 18px; font-weight: 500; color: #007AFF; display: none; }
 #overlay-secreto { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-.caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); }
+.caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.3); } 50% { box-shadow: 0 0 60px rgba(0,255,136,0.5); } }
 .caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; margin-bottom: 20px; }
-.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; }
+.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; }
 .timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
 .fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
+.carregando { color: #666; font-size: 14px; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -29,7 +31,7 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <p class="subtitle">Dólar, Euro, Real e mais</p>
 <div class="input-group">
 <label>Valor</label>
-<input type="text" placeholder="Digite um valor..." id="fake-input">
+<input type="text" placeholder="Digite um valor..." id="fake-input" autocomplete="off">
 </div>
 <div class="input-group">
 <label>Converter para</label>
@@ -38,31 +40,91 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <button class="btn" id="btn-converter">Converter</button>
 <div class="resultado" id="fake-result">Resultado: R$ 5,20</div>
 </div>
+
 <div id="overlay-secreto">
 <div class="caixa-secreta">
 <h2>🔓 MENSAGEM DESBLOQUEADA</h2>
-<p id="texto-secreto">bom dia</p>
+<p id="texto-secreto">Carregando...</p>
 <div class="timer">Esta mensagem será destruída em <span id="contador">20</span>s</div>
-<button class="fechar-btn" onclick="document.getElementById('overlay-secreto').style.display='none'">Destruir agora</button>
+<button class="fechar-btn" id="btn-destruir">Destruir agora</button>
 </div>
 </div>
+
 <script>
 const CODIGO = "cw";
 const TEMPO = 20;
-document.getElementById('btn-converter').addEventListener('click', function() {
-const val = document.getElementById('fake-input').value.trim();
-if (val === CODIGO) {
-document.getElementById('overlay-secreto').style.display = 'flex';
-let s = TEMPO;
-const c = document.getElementById('contador');
-const i = setInterval(() => { s--; c.textContent = s; if (s <= 0) { clearInterval(i); document.getElementById('overlay-secreto').style.display = 'none'; } }, 1000);
-} else {
-document.getElementById('fake-result').style.display = 'block';
-document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
+const RAW_URL = "https://raw.githubusercontent.com/minhasempresasb3/minhasempresasb3.github.io/main/mensagem.txt";
+
+let timerAtivo = null;
+
+async function buscarMensagem() {
+    try {
+        const response = await fetch(RAW_URL + "?t=" + Date.now());
+        if (!response.ok) throw new Error("Erro");
+        const texto = await response.text();
+        return texto.trim();
+    } catch (e) {
+        return "Erro ao carregar mensagem. Tente recarregar a página.";
+    }
 }
+
+async function revelarMensagem() {
+    const overlay = document.getElementById('overlay-secreto');
+    const textoEl = document.getElementById('texto-secreto');
+    const contadorEl = document.getElementById('contador');
+    const btnDestruir = document.getElementById('btn-destruir');
+    
+    // Busca mensagem em tempo real
+    textoEl.textContent = "Carregando...";
+    overlay.style.display = 'flex';
+    
+    const mensagem = await buscarMensagem();
+    textoEl.textContent = mensagem;
+    
+    // Contagem regressiva
+    let segundos = TEMPO;
+    contadorEl.textContent = segundos;
+    
+    if (timerAtivo) clearInterval(timerAtivo);
+    
+    timerAtivo = setInterval(() => {
+        segundos--;
+        contadorEl.textContent = segundos;
+        if (segundos <= 0) {
+            clearInterval(timerAtivo);
+            destruir();
+        }
+    }, 1000);
+    
+    // Botão destruir
+    btnDestruir.onclick = destruir;
+}
+
+function destruir() {
+    clearInterval(timerAtivo);
+    document.getElementById('overlay-secreto').style.display = 'none';
+    document.getElementById('fake-input').value = '';
+    document.getElementById('fake-result').style.display = 'none';
+}
+
+function fakeCalc() {
+    document.getElementById('fake-result').style.display = 'block';
+    document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
+}
+
+document.getElementById('btn-converter').addEventListener('click', async function() {
+    const val = document.getElementById('fake-input').value.trim();
+    if (val === CODIGO) {
+        await revelarMensagem();
+    } else {
+        fakeCalc();
+    }
 });
+
 document.getElementById('fake-input').addEventListener('keypress', function(e) {
-if (e.key === 'Enter') document.getElementById('btn-converter').click();
+    if (e.key === 'Enter') {
+        document.getElementById('btn-converter').click();
+    }
 });
 </script>
 </body>
