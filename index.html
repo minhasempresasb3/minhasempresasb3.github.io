@@ -22,10 +22,6 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 .caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; }
 .timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
 .fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
-#overlay-erro { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9998; justify-content: center; align-items: center; flex-direction: column; }
-.erro-box { text-align: center; }
-.erro-box h2 { color: #999; font-size: 48px; margin-bottom: 10px; }
-.erro-box p { color: #666; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -38,107 +34,77 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 </div>
 <div class="input-group">
 <label>Converter para</label>
-<select><option>Real → Dólar</option><option>Dólar → Real</option><option>Real → Euro</option></select>
+<select id="tipo-conversao"><option value="usd-brl">Dólar → Real</option><option value="brl-usd">Real → Dólar</option></select>
 </div>
 <button class="btn" id="btn-converter">Converter</button>
-<div class="resultado" id="fake-result">Resultado: R$ 5,20</div>
+<div class="resultado" id="fake-result"></div>
 </div>
 
 <div id="overlay-secreto">
 <div class="caixa-secreta">
 <h2>🔓 MENSAGEM DESBLOQUEADA</h2>
 <p id="texto-secreto">Carregando...</p>
-<div class="timer">Esta mensagem será destruída em <span id="contador">20</span>s</div>
+<div class="timer">Esta mensagem será destruída em <span id="contador">10</span>s</div>
 <button class="fechar-btn" id="btn-destruir">Destruir agora</button>
-</div>
-</div>
-
-<div id="overlay-erro">
-<div class="erro-box">
-<h2>404</h2>
-<p>Nenhuma mensagem nova</p>
 </div>
 </div>
 
 <script>
 const CODIGO = "cw";
-const TEMPO = 20;
-const BASE_URL = "https://raw.githubusercontent.com/minhasempresasb3/minhasempresasb3.github.io/main";
-
+const TEMPO = 10;
 let timerAtivo = null;
+let taxaDolar = 5.00;
 
-function getLidas() {
-    return JSON.parse(localStorage.getItem('caixa_preta_lidas') || '[]');
+// Busca taxa real do dólar ao abrir o site
+fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
+  .then(r => r.json())
+  .then(d => { if(d.USDBRL && d.USDBRL.bid) taxaDolar = parseFloat(d.USDBRL.bid); })
+  .catch(() => {});
+
+function destruir() {
+    clearInterval(timerAtivo);
+    document.getElementById('overlay-secreto').style.display = 'none';
+    document.getElementById('fake-input').value = '';
 }
 
-function salvarLida(id) {
-    const lidas = getLidas();
-    if (!lidas.includes(id)) {
-        lidas.push(id);
-        localStorage.setItem('caixa_preta_lidas', JSON.stringify(lidas));
+function mostrarResultado(texto) {
+    const el = document.getElementById('fake-result');
+    el.textContent = texto;
+    el.style.display = 'block';
+}
+
+function converterMoeda() {
+    const val = parseFloat(document.getElementById('fake-input').value);
+    const tipo = document.getElementById('tipo-conversao').value;
+    if (isNaN(val) || val < 0) {
+        mostrarResultado('Digite um valor válido');
+        return;
     }
-}
-
-function jaFoiLida(id) {
-    return getLidas().includes(id);
-}
-
-function mostrarErro() {
-    const overlay = document.getElementById('overlay-erro');
-    overlay.style.display = 'flex';
-    setTimeout(() => { overlay.style.display = 'none'; }, 2000);
-}
-
-async function fetchSemCache(url) {
-    // cache-buster agressivo + no-store
-    const bust = Date.now() + Math.random().toString(36).substring(2);
-    const response = await fetch(url + "?_cb=" + bust, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' }
-    });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    return response.text();
+    let res;
+    if (tipo === 'usd-brl') res = (val * taxaDolar).toFixed(2);
+    else res = (val / taxaDolar).toFixed(2);
+    const moeda = tipo === 'usd-brl' ? 'R$' : 'US$';
+    mostrarResultado('Resultado: ' + moeda + ' ' + res);
 }
 
 async function revelarMensagem() {
     const overlay = document.getElementById('overlay-secreto');
     const textoEl = document.getElementById('texto-secreto');
     const contadorEl = document.getElementById('contador');
-    const btnDestruir = document.getElementById('btn-destruir');
-
-    textoEl.textContent = "Verificando...";
 
     try {
-        // Busca ID primeiro (com anti-cache)
-        const idRaw = await fetchSemCache(BASE_URL + "/id.txt");
-        const idAtual = idRaw.trim();
+        // Busca do PRÓPRIO site (não do raw) — cache-buster funciona aqui
+        const r = await fetch('./mensagem.txt?_=' + Date.now(), {cache: 'no-store'});
+        const msg = (await r.text()).trim();
 
-        if (!idAtual) {
-            mostrarErro();
+        if (!msg) {
+            // Sem mensagem: não acontece nada de especial
             return;
         }
 
-        // Já leu essa?
-        if (jaFoiLida(idAtual)) {
-            mostrarErro();
-            return;
-        }
-
-        // Busca mensagem
-        const msgRaw = await fetchSemCache(BASE_URL + "/mensagem.txt");
-        const mensagem = msgRaw.trim();
-
-        if (!mensagem) {
-            mostrarErro();
-            return;
-        }
-
-        // Mostra!
         overlay.style.display = 'flex';
-        textoEl.textContent = mensagem;
-        salvarLida(idAtual);
+        textoEl.textContent = msg;
 
-        // Contagem regressiva
         let segundos = TEMPO;
         contadorEl.textContent = segundos;
         if (timerAtivo) clearInterval(timerAtivo);
@@ -146,45 +112,30 @@ async function revelarMensagem() {
         timerAtivo = setInterval(() => {
             segundos--;
             contadorEl.textContent = segundos;
-            if (segundos <= 0) {
-                clearInterval(timerAtivo);
-                destruir();
-            }
+            if (segundos <= 0) { clearInterval(timerAtivo); destruir(); }
         }, 1000);
 
-        btnDestruir.onclick = destruir;
+        document.getElementById('btn-destruir').onclick = destruir;
 
     } catch (e) {
-        console.error(e);
-        mostrarErro();
+        // Se der erro, também não acontece nada
     }
 }
 
-function destruir() {
-    clearInterval(timerAtivo);
-    document.getElementById('overlay-secreto').style.display = 'none';
-    document.getElementById('fake-input').value = '';
-    document.getElementById('fake-result').style.display = 'none';
-}
-
-function fakeCalc() {
-    document.getElementById('fake-result').style.display = 'block';
-    document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
-}
-
-document.getElementById('btn-converter').addEventListener('click', async function() {
+document.getElementById('btn-converter').addEventListener('click', function() {
     const val = document.getElementById('fake-input').value.trim();
+
     if (val === CODIGO) {
-        await revelarMensagem();
+        revelarMensagem();
+    } else if (!isNaN(parseFloat(val)) && val !== '') {
+        converterMoeda();
     } else {
-        fakeCalc();
+        mostrarResultado('Digite um número ou o código');
     }
 });
 
 document.getElementById('fake-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        document.getElementById('btn-converter').click();
-    }
+    if (e.key === 'Enter') document.getElementById('btn-converter').click();
 });
 </script>
 </body>
