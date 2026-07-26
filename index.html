@@ -63,51 +63,41 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <script>
 const CODIGO = "cw";
 const TEMPO = 20;
-const RAW_URL = "https://raw.githubusercontent.com/minhasempresasb3/minhasempresasb3.github.io/main/mensagem.txt";
+const BASE_URL = "https://raw.githubusercontent.com/minhasempresasb3/minhasempresasb3.github.io/main";
 
 let timerAtivo = null;
 
-// Hash simples da string
-function hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString(16);
+function getLidas() {
+    return JSON.parse(localStorage.getItem('caixa_preta_lidas') || '[]');
 }
 
-async function buscarMensagem() {
-    try {
-        const response = await fetch(RAW_URL + "?t=" + Date.now());
-        if (!response.ok) throw new Error("Erro");
-        const texto = await response.text();
-        return texto.trim();
-    } catch (e) {
-        return null;
+function salvarLida(id) {
+    const lidas = getLidas();
+    if (!lidas.includes(id)) {
+        lidas.push(id);
+        localStorage.setItem('caixa_preta_lidas', JSON.stringify(lidas));
     }
 }
 
-function jaFoiLida(hash) {
-    const lidas = JSON.parse(localStorage.getItem('msgs_lidas') || '[]');
-    return lidas.includes(hash);
-}
-
-function marcarComoLida(hash) {
-    const lidas = JSON.parse(localStorage.getItem('msgs_lidas') || '[]');
-    if (!lidas.includes(hash)) {
-        lidas.push(hash);
-        localStorage.setItem('msgs_lidas', JSON.stringify(lidas));
-    }
+function jaFoiLida(id) {
+    return getLidas().includes(id);
 }
 
 function mostrarErro() {
     const overlay = document.getElementById('overlay-erro');
     overlay.style.display = 'flex';
-    setTimeout(() => {
-        overlay.style.display = 'none';
-    }, 2000);
+    setTimeout(() => { overlay.style.display = 'none'; }, 2000);
+}
+
+async function fetchSemCache(url) {
+    // cache-buster agressivo + no-store
+    const bust = Date.now() + Math.random().toString(36).substring(2);
+    const response = await fetch(url + "?_cb=" + bust, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return response.text();
 }
 
 async function revelarMensagem() {
@@ -115,47 +105,59 @@ async function revelarMensagem() {
     const textoEl = document.getElementById('texto-secreto');
     const contadorEl = document.getElementById('contador');
     const btnDestruir = document.getElementById('btn-destruir');
-    
-    textoEl.textContent = "Carregando...";
-    
-    const mensagem = await buscarMensagem();
-    
-    if (!mensagem || mensagem.length === 0) {
-        mostrarErro();
-        return;
-    }
-    
-    const hash = hashString(mensagem);
-    
-    // Verifica se já foi lida
-    if (jaFoiLida(hash)) {
-        mostrarErro();
-        return;
-    }
-    
-    // Mostra a mensagem
-    overlay.style.display = 'flex';
-    textoEl.textContent = mensagem;
-    
-    // Marca como lida imediatamente
-    marcarComoLida(hash);
-    
-    // Contagem regressiva
-    let segundos = TEMPO;
-    contadorEl.textContent = segundos;
-    
-    if (timerAtivo) clearInterval(timerAtivo);
-    
-    timerAtivo = setInterval(() => {
-        segundos--;
-        contadorEl.textContent = segundos;
-        if (segundos <= 0) {
-            clearInterval(timerAtivo);
-            destruir();
+
+    textoEl.textContent = "Verificando...";
+
+    try {
+        // Busca ID primeiro (com anti-cache)
+        const idRaw = await fetchSemCache(BASE_URL + "/id.txt");
+        const idAtual = idRaw.trim();
+
+        if (!idAtual) {
+            mostrarErro();
+            return;
         }
-    }, 1000);
-    
-    btnDestruir.onclick = destruir;
+
+        // Já leu essa?
+        if (jaFoiLida(idAtual)) {
+            mostrarErro();
+            return;
+        }
+
+        // Busca mensagem
+        const msgRaw = await fetchSemCache(BASE_URL + "/mensagem.txt");
+        const mensagem = msgRaw.trim();
+
+        if (!mensagem) {
+            mostrarErro();
+            return;
+        }
+
+        // Mostra!
+        overlay.style.display = 'flex';
+        textoEl.textContent = mensagem;
+        salvarLida(idAtual);
+
+        // Contagem regressiva
+        let segundos = TEMPO;
+        contadorEl.textContent = segundos;
+        if (timerAtivo) clearInterval(timerAtivo);
+
+        timerAtivo = setInterval(() => {
+            segundos--;
+            contadorEl.textContent = segundos;
+            if (segundos <= 0) {
+                clearInterval(timerAtivo);
+                destruir();
+            }
+        }, 1000);
+
+        btnDestruir.onclick = destruir;
+
+    } catch (e) {
+        console.error(e);
+        mostrarErro();
+    }
 }
 
 function destruir() {
