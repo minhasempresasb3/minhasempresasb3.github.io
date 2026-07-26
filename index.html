@@ -28,8 +28,6 @@
         h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
         .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
         
-        /* === FACHADA === */
-        .fachada { display: block; }
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; font-weight: 500; }
         .input-group input, .input-group select {
@@ -49,7 +47,7 @@
             padding: 14px;
             background: #007AFF;
             color: white;
-            border: none;
+            border            border: none;
             border-radius: 10px;
             font-size: 16px;
             font-weight: 500;
@@ -69,19 +67,6 @@
             display: none;
         }
         
-        /* === CAMPO SECRETO === */
-        #campo-secreto {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            border: none;
-            background: transparent;
-        }
-        
-        /* === MENSAGEM SECRETA === */
         #overlay-secreto {
             display: none;
             position: fixed;
@@ -138,7 +123,6 @@
         }
         .fechar-btn:hover { background: rgba(0,255,136,0.1); }
         
-        /* === ERRO (código errado) === */
         #overlay-erro {
             display: none;
             position: fixed;
@@ -149,11 +133,20 @@
             align-items: center;
             flex-direction: column;
         }
-        .erro-box {
-            text-align: center;
-        }
+        .erro-box { text-align: center; }
         .erro-box h2 { color: #999; font-size: 48px; margin-bottom: 10px; }
         .erro-box p { color: #666; font-size: 16px; }
+        
+        /* Botão secreto invisível no canto */
+        .zona-secreta {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            z-index: 100;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -161,38 +154,37 @@
         <h1>Conversor de moedas hoje</h1>
         <p class="subtitle">Dólar, Euro, Real e mais</p>
         
-        <div class="fachada">
-            <div class="input-group">
-                <label>Valor</label>
-                <input type="text" placeholder="Digite um valor..." id="fake-input">
-            </div>
-            <div class="input-group">
-                <label>Converter para</label>
-                <select id="fake-select">
-                    <option>Celsius → Fahrenheit</option>
-                    <option>Fahrenheit → Celsius</option>
-                    <option>Celsius → Kelvin</option>
-                </select>
-            </div>
-            <button class="btn" onclick="fakeCalc()">Converter</button>
-            <div class="resultado" id="fake-result">Resultado: 32°F</div>
+        <div class="input-group">
+            <label>Valor</label>
+            <input type="text" placeholder="Digite um valor..." id="fake-input">
         </div>
+        <div class="input-group">
+            <label>Converter para</label>
+            <select id="fake-select">
+                <option>Real → Dólar</option>
+                <option>Dólar → Real</option>
+                <option>Real → Euro</option>
+                <option>Euro → Real</option>
+            </select>
+        </div>
+        <button class="btn" id="btn-converter">Converter</button>
+        <div class="resultado" id="fake-result">Resultado: R$ 5,20</div>
     </div>
     
-    <!-- Campo secreto invisível -->
-    <input type="text" id="campo-secreto" placeholder="Código" autocomplete="off">
+    <!-- Zona secreta: toque 3 vezes rápido no canto inferior direito -->
+    <div class="zona-secreta" id="zona-secreta"></div>
     
     <!-- Overlay da mensagem secreta -->
     <div id="overlay-secreto">
         <div class="caixa-secreta">
             <h2>🔓 MENSAGEM DESBLOQUEADA</h2>
-            <p id="texto-secreto">eu e voce</p>
+            <p id="texto-secreto">Oi! Essa é uma mensagem secreta enviada pelo Termux! 😄</p>
             <div class="timer" id="timer">Esta mensagem será destruída em <span id="contador">20</span>s</div>
             <button class="fechar-btn" onclick="destruir()">Destruir agora</button>
         </div>
     </div>
     
-    <!-- Overlay de erro (código errado) -->
+    <!-- Overlay de erro -->
     <div id="overlay-erro">
         <div class="erro-box">
             <h2>404</h2>
@@ -204,37 +196,79 @@
         const CODIGO_SECRETO = "cw26";
         const TEMPO_DESTRUICAO = 20;
         
-        // Focar no campo secreto quando pressionar Ctrl+Shift+K
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.shiftKey && e.key === 'K') {
-                e.preventDefault();
-                document.getElementById('campo-secreto').focus();
-            }
-        });
+        const fakeInput = document.getElementById('fake-input');
+        const btnConverter = document.getElementById('btn-converter');
+        const zonaSecreta = document.getElementById('zona-secreta');
         
-        // Detectar digitação no campo secreto
-        const campoSecreto = document.getElementById('campo-secreto');
-        campoSecreto.addEventListener('input', function(e) {
-            const digitado = e.target.value.trim();
-            if (digitado === CODIGO_SECRETO) {
+        // Botão Converter agora VERIFICA o código também!
+        btnConverter.addEventListener('click', function() {
+            const val = fakeInput.value.trim();
+            if (val === CODIGO_SECRETO) {
                 revelarMensagem();
-                e.target.value = '';
-            } else if (digitado.length >= CODIGO_SECRETO.length) {
-                mostrarErro();
-                e.target.value = '';
+                fakeInput.value = '';
+            } else {
+                fakeCalc();
             }
         });
         
-        // Também detectar Enter no campo fake (alguns vão tentar digitar lá)
-        document.getElementById('fake-input').addEventListener('keypress', function(e) {
+        // Enter no campo também verifica
+        fakeInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const val = e.target.value.trim();
                 if (val === CODIGO_SECRETO) {
                     revelarMensagem();
                     e.target.value = '';
+                } else {
+                    fakeCalc();
                 }
             }
         });
+        
+        // Atalho PC: Ctrl+Shift+K
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+                e.preventDefault();
+                fakeInput.focus();
+            }
+        });
+        
+        // Atalho Mobile: toque 3 vezes no canto inferior direito
+        let toques = 0;
+        let ultimoToque = 0;
+        zonaSecreta.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const agora = Date.now();
+            if (agora - ultimoToque < 500) {
+                toques++;
+                if (toques >= 3) {
+                    fakeInput.focus();
+                    toques = 0;
+                }
+            } else {
+                toques = 1;
+            }
+            ultimoToque = agora;
+        });
+        // Também funciona com clique no PC (para testar)
+        zonaSecreta.addEventListener('click', function(e) {
+            e.preventDefault();
+            const agora = Date.now();
+            if (agora - ultimoToque < 500) {
+                toques++;
+                if (toques >= 3) {
+                    fakeInput.focus();
+                    toques = 0;
+                }
+            } else {
+                toques = 1;
+            }
+            ultimoToque = agora;
+        });
+        
+        function fakeCalc() {
+            document.getElementById('fake-result').style.display = 'block';
+            document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
+        }
         
         function revelarMensagem() {
             document.getElementById('overlay-secreto').style.display = 'flex';
@@ -260,11 +294,6 @@
         function destruir() {
             document.getElementById('overlay-secreto').style.display = 'none';
             document.getElementById('texto-secreto').textContent = '[MENSAGEM DESTRUÍDA]';
-        }
-        
-        function fakeCalc() {
-            document.getElementById('fake-result').style.display = 'block';
-            document.getElementById('fake-result').textContent = 'Resultado: ' + (Math.random() * 100).toFixed(1) + '°';
         }
     </script>
 </body>
