@@ -19,7 +19,7 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 .caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.3); } 50% { box-shadow: 0 0 60px rgba(0,255,136,0.5); } }
 .caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; margin-bottom: 20px; }
-.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; }
+.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; min-height: 24px; }
 .timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
 .fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
 </style>
@@ -43,7 +43,7 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <div id="overlay-secreto">
 <div class="caixa-secreta">
 <h2>🔓 MENSAGEM DESBLOQUEADA</h2>
-<p id="texto-secreto">Carregando...</p>
+<p id="texto-secreto"></p>
 <div class="timer">Esta mensagem será destruída em <span id="contador">10</span>s</div>
 <button class="fechar-btn" id="btn-destruir">Destruir agora</button>
 </div>
@@ -52,18 +52,21 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <script>
 const CODIGO = "cw";
 const TEMPO = 10;
+const REPO = "minhasempresasb3/minhasempresasb3.github.io";
 let timerAtivo = null;
 let taxaDolar = 5.00;
 
-// Busca taxa real do dólar ao abrir o site
 fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
   .then(r => r.json())
   .then(d => { if(d.USDBRL && d.USDBRL.bid) taxaDolar = parseFloat(d.USDBRL.bid); })
   .catch(() => {});
 
-function destruir() {
+function limparTudo() {
     clearInterval(timerAtivo);
+    timerAtivo = null;
     document.getElementById('overlay-secreto').style.display = 'none';
+    document.getElementById('texto-secreto').textContent = '';
+    document.getElementById('contador').textContent = TEMPO;
     document.getElementById('fake-input').value = '';
 }
 
@@ -88,43 +91,41 @@ function converterMoeda() {
 }
 
 async function revelarMensagem() {
-    const overlay = document.getElementById('overlay-secreto');
-    const textoEl = document.getElementById('texto-secreto');
-    const contadorEl = document.getElementById('contador');
+    limparTudo();
 
     try {
-        // Busca do PRÓPRIO site (não do raw) — cache-buster funciona aqui
-        const r = await fetch('./mensagem.txt?_=' + Date.now(), {cache: 'no-store'});
-        const msg = (await r.text()).trim();
+        // Busca pela API do GitHub (sem cache do GitHub Pages!)
+        const apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/mensagem.txt';
+        const r = await fetch(apiUrl + '?ref=main&_=' + Date.now(), {cache: 'no-store'});
+        const data = await r.json();
+        const msg = atob(data.content).trim();
 
-        if (!msg) {
-            // Sem mensagem: não acontece nada de especial
-            return;
-        }
+        if (!msg) return;
 
-        overlay.style.display = 'flex';
+        const overlay = document.getElementById('overlay-secreto');
+        const textoEl = document.getElementById('texto-secreto');
+        const contadorEl = document.getElementById('contador');
+
         textoEl.textContent = msg;
+        overlay.style.display = 'flex';
 
         let segundos = TEMPO;
         contadorEl.textContent = segundos;
-        if (timerAtivo) clearInterval(timerAtivo);
 
         timerAtivo = setInterval(() => {
             segundos--;
             contadorEl.textContent = segundos;
-            if (segundos <= 0) { clearInterval(timerAtivo); destruir(); }
+            if (segundos <= 0) limparTudo();
         }, 1000);
 
-        document.getElementById('btn-destruir').onclick = destruir;
-
+        document.getElementById('btn-destruir').onclick = limparTudo;
     } catch (e) {
-        // Se der erro, também não acontece nada
+        // sem msg ou erro = nada acontece
     }
 }
 
 document.getElementById('btn-converter').addEventListener('click', function() {
     const val = document.getElementById('fake-input').value.trim();
-
     if (val === CODIGO) {
         revelarMensagem();
     } else if (!isNaN(parseFloat(val)) && val !== '') {
