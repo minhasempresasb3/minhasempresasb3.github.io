@@ -22,7 +22,10 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 .caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; }
 .timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
 .fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
-.carregando { color: #666; font-size: 14px; margin-top: 10px; }
+#overlay-erro { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9998; justify-content: center; align-items: center; flex-direction: column; }
+.erro-box { text-align: center; }
+.erro-box h2 { color: #999; font-size: 48px; margin-bottom: 10px; }
+.erro-box p { color: #666; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -50,12 +53,30 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 </div>
 </div>
 
+<div id="overlay-erro">
+<div class="erro-box">
+<h2>404</h2>
+<p>Nenhuma mensagem nova</p>
+</div>
+</div>
+
 <script>
 const CODIGO = "cw";
 const TEMPO = 20;
 const RAW_URL = "https://raw.githubusercontent.com/minhasempresasb3/minhasempresasb3.github.io/main/mensagem.txt";
 
 let timerAtivo = null;
+
+// Hash simples da string
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return hash.toString(16);
+}
 
 async function buscarMensagem() {
     try {
@@ -64,8 +85,29 @@ async function buscarMensagem() {
         const texto = await response.text();
         return texto.trim();
     } catch (e) {
-        return "Erro ao carregar mensagem. Tente recarregar a página.";
+        return null;
     }
+}
+
+function jaFoiLida(hash) {
+    const lidas = JSON.parse(localStorage.getItem('msgs_lidas') || '[]');
+    return lidas.includes(hash);
+}
+
+function marcarComoLida(hash) {
+    const lidas = JSON.parse(localStorage.getItem('msgs_lidas') || '[]');
+    if (!lidas.includes(hash)) {
+        lidas.push(hash);
+        localStorage.setItem('msgs_lidas', JSON.stringify(lidas));
+    }
+}
+
+function mostrarErro() {
+    const overlay = document.getElementById('overlay-erro');
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 2000);
 }
 
 async function revelarMensagem() {
@@ -74,12 +116,29 @@ async function revelarMensagem() {
     const contadorEl = document.getElementById('contador');
     const btnDestruir = document.getElementById('btn-destruir');
     
-    // Busca mensagem em tempo real
     textoEl.textContent = "Carregando...";
-    overlay.style.display = 'flex';
     
     const mensagem = await buscarMensagem();
+    
+    if (!mensagem || mensagem.length === 0) {
+        mostrarErro();
+        return;
+    }
+    
+    const hash = hashString(mensagem);
+    
+    // Verifica se já foi lida
+    if (jaFoiLida(hash)) {
+        mostrarErro();
+        return;
+    }
+    
+    // Mostra a mensagem
+    overlay.style.display = 'flex';
     textoEl.textContent = mensagem;
+    
+    // Marca como lida imediatamente
+    marcarComoLida(hash);
     
     // Contagem regressiva
     let segundos = TEMPO;
@@ -96,7 +155,6 @@ async function revelarMensagem() {
         }
     }, 1000);
     
-    // Botão destruir
     btnDestruir.onclick = destruir;
 }
 
