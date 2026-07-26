@@ -1,69 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor de moedas hoje</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .container { background: white; border-radius: 16px; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
-        h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
-        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; font-weight: 500; }
-        .input-group input, .input-group select { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        .btn { width: 100%; padding: 14px; background: #007AFF; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; }
-        .resultado { margin-top: 20px; padding: 16px; background: #f0f8ff; border-radius: 10px; text-align: center; font-size: 18px; font-weight: 500; color: #007AFF; display: none; }
-        #overlay-secreto { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-        .caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); }
-        .caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; margin-bottom: 20px; }
-        .caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; }
-        .timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
-        .fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversor de moedas hoje</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.container { background: white; border-radius: 16px; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
+.subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; font-weight: 500; }
+.input-group input, .input-group select { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+.btn { width: 100%; padding: 14px; background: #007AFF; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; }
+.resultado { margin-top: 20px; padding: 16px; background: #f0f8ff; border-radius: 10px; text-align: center; font-size: 18px; font-weight: 500; color: #007AFF; display: none; }
+#overlay-secreto { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+.caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); }
+.caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; margin-bottom: 20px; }
+.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; }
+.timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
+.fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Conversor de moedas hoje</h1>
-        <p class="subtitle">Dólar, Euro, Real e mais</p>
-        <div class="input-group">
-            <label>Valor</label>
-            <input type="text" placeholder="Digite um valor..." id="fake-input">
-        </div>
-        <div class="input-group">
-            <label>Converter para</label>
-            <select><option>Real → Dólar</option><option>Dólar → Real</option><option>Real → Euro</option></select>
-        </div>
-        <button class="btn" id="btn-converter">Converter</button>
-        <div class="resultado" id="fake-result">Resultado: R$ 5,20</div>
-    </div>
-    <div id="overlay-secreto">
-        <div class="caixa-secreta">
-            <h2>🔓 MENSAGEM DESBLOQUEADA</h2>
-            <p id="texto-secreto">quero meter em vc</p>
-            <div class="timer">Esta mensagem será destruída em <span id="contador">20</span>s</div>
-            <button class="fechar-btn" onclick="document.getElementById('overlay-secreto').style.display='none'">Destruir agora</button>
-        </div>
-    </div>
-    <script>
-        const CODIGO = "cw26";
-        const TEMPO = 20;
-        document.getElementById('btn-converter').addEventListener('click', function() {
-            const val = document.getElementById('fake-input').value.trim();
-            if (val === CODIGO) {
-                document.getElementById('overlay-secreto').style.display = 'flex';
-                let s = TEMPO;
-                const c = document.getElementById('contador');
-                const i = setInterval(() => { s--; c.textContent = s; if (s <= 0) { clearInterval(i); document.getElementById('overlay-secreto').style.display = 'none'; } }, 1000);
-            } else {
-                document.getElementById('fake-result').style.display = 'block';
-                document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
-            }
-        });
-        document.getElementById('fake-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('btn-converter').click();
-        });
-    </script>
+<div class="container">
+<h1>Conversor de moedas hoje</h1>
+<p class="subtitle">Dólar, Euro, Real e mais</p>
+<div class="input-group">
+<label>Valor</label>
+<input type="text" placeholder="Digite um valor..." id="fake-input">
+</div>
+<div class="input-group">
+<label>Converter para</label>
+<select><option>Real → Dólar</option><option>Dólar → Real</option><option>Real → Euro</option></select>
+</div>
+<button class="btn" id="btn-converter">Converter</button>
+<div class="resultado" id="fake-result">Resultado: R$ 5,20</div>
+</div>
+<div id="overlay-secreto">
+<div class="caixa-secreta">
+<h2>🔓 MENSAGEM DESBLOQUEADA</h2>
+<p id="texto-secreto">ei</p>
+<div class="timer">Esta mensagem será destruída em <span id="contador">20</span>s</div>
+<button class="fechar-btn" onclick="document.getElementById('overlay-secreto').style.display='none'">Destruir agora</button>
+</div>
+</div>
+<script>
+const CODIGO = "cw26";
+const TEMPO = 20;
+document.getElementById('btn-converter').addEventListener('click', function() {
+const val = document.getElementById('fake-input').value.trim();
+if (val === CODIGO) {
+document.getElementById('overlay-secreto').style.display = 'flex';
+let s = TEMPO;
+const c = document.getElementById('contador');
+const i = setInterval(() => { s--; c.textContent = s; if (s <= 0) { clearInterval(i); document.getElementById('overlay-secreto').style.display = 'none'; } }, 1000);
+} else {
+document.getElementById('fake-result').style.display = 'block';
+document.getElementById('fake-result').textContent = 'Resultado: R$ ' + (Math.random() * 10).toFixed(2);
+}
+});
+document.getElementById('fake-input').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') document.getElementById('btn-converter').click();
+});
+</script>
 </body>
 </html>
