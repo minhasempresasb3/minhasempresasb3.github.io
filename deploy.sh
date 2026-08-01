@@ -1,3 +1,13 @@
+cd ~/caixa-preta
+
+# padroniza o nome da imagem do pino (evita quebrar de novo quando trocar a foto)
+IMG_ATUAL=$(ls -t *.png 2>/dev/null | head -1)
+if [ -n "$IMG_ATUAL" ] && [ "$IMG_ATUAL" != "pin.png" ]; then
+  mv "$IMG_ATUAL" pin.png
+  echo "Imagem renomeada: $IMG_ATUAL -> pin.png"
+fi
+
+cat > index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -249,3 +259,10 @@ setInterval(checkBadge, 60000);
 </script>
 </body>
 </html>
+HTMLEOF
+
+git config pull.rebase false
+git add .
+git commit -m "corrige persistência do badge e decodificação UTF-8" || echo "Nada novo para commitar"
+git pull origin main --no-edit
+git push origin main
