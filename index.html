@@ -1,88 +1,148 @@
+
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 
 <head>
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>Mapa</title>
 
+
+<!-- ====================================================== -->
+<!-- LEAFLET -->
+<!-- ====================================================== -->
+
 <link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 />
 
 <script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+
+<!-- ====================================================== -->
+<!-- ESTILOS -->
+<!-- ====================================================== -->
 
 <style>
 
-/* ============================= */
-/* CONFIGURAÇÃO GERAL */
-/* ============================= */
-
 * {
+
   margin: 0;
+
   padding: 0;
+
   box-sizing: border-box;
+
 }
 
+
+html,
 body {
+
+  width: 100%;
+
+  height: 100%;
+
+  overflow: hidden;
+
+}
+
+
+body {
+
   font-family:
     -apple-system,
     BlinkMacSystemFont,
-    'Segoe UI',
+    "Segoe UI",
     Roboto,
+    Arial,
     sans-serif;
 
-  overflow: hidden;
 }
+
 
 #mapa {
+
+  position: fixed;
+
+  top: 0;
+
+  left: 0;
+
   width: 100vw;
+
   height: 100vh;
+
+  z-index: 1;
+
 }
 
 
-/* ============================= */
-/* PIN PERSONALIZADO */
-/* ============================= */
+/* ====================================================== */
+/* PIN */
+/* ====================================================== */
 
-.pin-casa {
+.pin-personalizado {
+
   position: relative;
+
   width: 60px;
+
   height: 60px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
 }
 
-.pin-casa .icone-imagem {
+
+.pin-personalizado img {
+
+  display: block;
+
   width: 60px;
+
   height: 60px;
 
   object-fit: contain;
 
-  border-radius: 50%;
-
   filter:
     drop-shadow(
       0 2px 4px
-      rgba(0,0,0,0.4)
+      rgba(0,0,0,0.5)
     );
+
 }
 
 
-/* ============================= */
-/* BADGE DE NOVA MENSAGEM */
-/* ============================= */
+/* ====================================================== */
+/* BADGE */
+/* ====================================================== */
 
-.pin-casa .badge {
+.badge-novo {
 
   position: absolute;
 
-  top: -5px;
-  right: -5px;
+  top: -6px;
+
+  right: -6px;
+
+  width: 22px;
+
+  height: 22px;
 
   background: #ff4444;
 
@@ -90,12 +150,10 @@ body {
 
   border-radius: 50%;
 
-  width: 22px;
-  height: 22px;
-
-  display: none;
+  display: flex;
 
   align-items: center;
+
   justify-content: center;
 
   font-size: 12px;
@@ -104,33 +162,50 @@ body {
 
   box-shadow:
     0 2px 6px
-    rgba(0,0,0,0.3);
+    rgba(0,0,0,0.4);
 
   animation:
     pulsar 1.5s infinite;
+
 }
 
-.pin-casa .badge.visivel {
-  display: flex;
+
+.badge-novo.oculto {
+
+  display: none;
+
 }
+
 
 @keyframes pulsar {
 
-  0%,
-  100% {
-    transform: scale(1);
+  0% {
+
+    transform:
+      scale(1);
+
   }
 
   50% {
-    transform: scale(1.2);
+
+    transform:
+      scale(1.2);
+
+  }
+
+  100% {
+
+    transform:
+      scale(1);
+
   }
 
 }
 
 
-/* ============================= */
-/* TELA DO CÓDIGO */
-/* ============================= */
+/* ====================================================== */
+/* OVERLAY DO CÓDIGO */
+/* ====================================================== */
 
 #overlay-codigo {
 
@@ -138,20 +213,19 @@ body {
 
   position: fixed;
 
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
+
+  z-index: 10000;
 
   background:
     rgba(0,0,0,0.85);
 
-  z-index: 10000;
-
   justify-content: center;
+
   align-items: center;
 
   padding: 20px;
+
 }
 
 
@@ -172,6 +246,7 @@ body {
   box-shadow:
     0 10px 40px
     rgba(0,0,0,0.3);
+
 }
 
 
@@ -223,7 +298,8 @@ body {
 
 .caixa-codigo input:focus {
 
-  border-color: #007AFF;
+  border-color:
+    #007AFF;
 
 }
 
@@ -234,7 +310,8 @@ body {
 
   padding: 14px;
 
-  background: #007AFF;
+  background:
+    #007AFF;
 
   color: white;
 
@@ -253,7 +330,8 @@ body {
 
 .caixa-codigo .erro {
 
-  color: #ff4444;
+  color:
+    #ff4444;
 
   font-size: 13px;
 
@@ -264,9 +342,9 @@ body {
 }
 
 
-/* ============================= */
-/* TELA DA MENSAGEM */
-/* ============================= */
+/* ====================================================== */
+/* OVERLAY DA MENSAGEM */
+/* ====================================================== */
 
 #overlay-msg {
 
@@ -274,20 +352,19 @@ body {
 
   position: fixed;
 
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
+
+  z-index: 9999;
 
   background:
     rgba(0,0,0,0.9);
 
-  z-index: 9999;
-
   justify-content: center;
+
   align-items: center;
 
   padding: 20px;
+
 }
 
 
@@ -308,6 +385,10 @@ body {
 
   width: 100%;
 
+  max-height: 90vh;
+
+  overflow-y: auto;
+
   text-align: center;
 
   box-shadow:
@@ -316,6 +397,7 @@ body {
 
   animation:
     surgir 0.5s ease;
+
 }
 
 
@@ -344,10 +426,11 @@ body {
 
 .carta h2 {
 
-  color: #5c3a1e;
+  color:
+    #5c3a1e;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 15px;
@@ -364,7 +447,8 @@ body {
 
 .carta .remetente {
 
-  color: #8b7355;
+  color:
+    #8b7355;
 
   font-size: 12px;
 
@@ -373,12 +457,13 @@ body {
 }
 
 
-.carta p {
+#texto-secreto {
 
-  color: #3d2817;
+  color:
+    #3d2817;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 17px;
@@ -394,7 +479,7 @@ body {
 }
 
 
-.carta .fechar-btn {
+.fechar-btn {
 
   padding:
     10px 24px;
@@ -413,7 +498,7 @@ body {
   cursor: pointer;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 13px;
@@ -423,7 +508,7 @@ body {
 }
 
 
-.carta .resposta-area {
+.resposta-area {
 
   margin-top: 20px;
 
@@ -437,12 +522,13 @@ body {
 }
 
 
-.carta .resposta-area h3 {
+.resposta-area h3 {
 
-  color: #5c3a1e;
+  color:
+    #5c3a1e;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 11px;
@@ -455,14 +541,15 @@ body {
 }
 
 
-.carta .resposta-area textarea {
+.resposta-area textarea {
 
   width: 100%;
 
   background:
     rgba(255,255,255,0.5);
 
-  color: #3d2817;
+  color:
+    #3d2817;
 
   border:
     1px solid #8b4513;
@@ -472,7 +559,7 @@ body {
   border-radius: 6px;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 13px;
@@ -486,7 +573,7 @@ body {
 }
 
 
-.carta .resposta-area .btn-enviar {
+.btn-enviar {
 
   width: 100%;
 
@@ -507,7 +594,7 @@ body {
   cursor: pointer;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 13px;
@@ -515,13 +602,13 @@ body {
 }
 
 
-.carta .enviado {
+.enviado {
 
   color:
     #228b22;
 
   font-family:
-    'Courier New',
+    "Courier New",
     monospace;
 
   font-size: 11px;
@@ -542,16 +629,16 @@ body {
 <body>
 
 
-<!-- ============================= -->
+<!-- ====================================================== -->
 <!-- MAPA -->
-<!-- ============================= -->
+<!-- ====================================================== -->
 
 <div id="mapa"></div>
 
 
-<!-- ============================= -->
+<!-- ====================================================== -->
 <!-- TELA DO CÓDIGO -->
-<!-- ============================= -->
+<!-- ====================================================== -->
 
 <div id="overlay-codigo">
 
@@ -588,9 +675,9 @@ body {
 </div>
 
 
-<!-- ============================= -->
+<!-- ====================================================== -->
 <!-- TELA DA CARTA -->
-<!-- ============================= -->
+<!-- ====================================================== -->
 
 <div id="overlay-msg">
 
@@ -646,12 +733,16 @@ body {
 </div>
 
 
+<!-- ====================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ====================================================== -->
+
 <script>
 
 
-/* ============================= */
-/* CONFIGURAÇÕES */
-/* ============================= */
+// ==========================================================
+// CONFIGURAÇÕES
+// ==========================================================
 
 const CODIGO = "cw";
 
@@ -668,9 +759,9 @@ const LNG =
   -41.013637;
 
 
-/* ============================= */
-/* HASH DA MENSAGEM */
-/* ============================= */
+// ==========================================================
+// FUNÇÃO HASH
+// ==========================================================
 
 function hash(str) {
 
@@ -687,6 +778,8 @@ function hash(str) {
       +
       str.charCodeAt(i);
 
+    h |= 0;
+
   }
 
   return h.toString();
@@ -694,15 +787,15 @@ function hash(str) {
 }
 
 
-/* ============================= */
-/* CRIAÇÃO DO MAPA */
-/* ============================= */
+// ==========================================================
+// INICIAR MAPA
+// ==========================================================
 
 const mapa =
   L.map(
-    'mapa',
+    "mapa",
     {
-      zoomControl: false
+      zoomControl: true
     }
   )
   .setView(
@@ -711,18 +804,20 @@ const mapa =
   );
 
 
-/* ============================= */
-/* MAPA OPENSTREETMAP */
-/* ============================= */
+// ==========================================================
+// CAMADA DO OPENSTREETMAP
+// ==========================================================
 
 L.tileLayer(
 
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
   {
 
+    maxZoom: 19,
+
     attribution:
-      '&copy; OpenStreetMap'
+      "&copy; OpenStreetMap contributors"
 
   }
 
@@ -730,50 +825,58 @@ L.tileLayer(
 .addTo(mapa);
 
 
-/* ============================= */
-/* PIN COM A IMAGEM */
-/* ============================= */
+// ==========================================================
+// CRIAR PIN PERSONALIZADO
+// ==========================================================
 
-const icone = L.divIcon({
+const icone =
+  L.divIcon({
 
-  className:
-    'pin-casa',
+    className:
+      "",
 
-  html: `
-
-    <div class="pin-casa">
-
-      <img
-        class="icone-imagem"
-        src="1000498337.png"
-      >
+    html: `
 
       <div
-        class="badge visivel"
-        id="badge-novo"
+        class="pin-personalizado"
       >
-        1
+
+        <img
+          src="./1000498337.png"
+          alt="Pin"
+          onerror="
+            console.error(
+              'Erro ao carregar 1000498337.png'
+            );
+          "
+        >
+
+        <div
+          id="badge-novo"
+          class="badge-novo"
+        >
+          1
+        </div>
+
       </div>
 
-    </div>
+    `,
 
-  `,
+    iconSize:
+      [60, 60],
 
-  iconSize:
-    [60, 60],
+    iconAnchor:
+      [30, 60],
 
-  iconAnchor:
-    [30, 60],
+    popupAnchor:
+      [0, -60]
 
-  popupAnchor:
-    [0, -60]
-
-});
+  });
 
 
-/* ============================= */
-/* MARCADOR */
-/* ============================= */
+// ==========================================================
+// CRIAR MARCADOR
+// ==========================================================
 
 const marcador =
 
@@ -782,17 +885,22 @@ const marcador =
     [LAT, LNG],
 
     {
-      icon: icone
+
+      icon:
+        icone,
+
+      title:
+        "Caixa Postal Privada"
+
     }
 
   )
-
   .addTo(mapa);
 
 
-/* ============================= */
-/* POPUP */
-/* ============================= */
+// ==========================================================
+// POPUP
+// ==========================================================
 
 marcador.bindPopup(`
 
@@ -820,111 +928,120 @@ marcador.bindPopup(`
 `);
 
 
-/* ============================= */
-/* CLIQUE NO PIN */
-/* ============================= */
+// ==========================================================
+// CLICAR NO PIN
+// ==========================================================
 
 marcador.on(
 
-  'click',
+  "click",
 
-  () => {
+  function() {
 
     document
       .getElementById(
-        'overlay-codigo'
+        "overlay-codigo"
       )
       .style.display =
-        'flex';
+        "flex";
+
+
+    const campo =
+      document
+        .getElementById(
+          "codigo-input"
+        );
+
+
+    campo.value =
+      "";
 
 
     document
       .getElementById(
-        'codigo-input'
-      )
-      .value =
-        '';
-
-
-    document
-      .getElementById(
-        'codigo-input'
-      )
-      .focus();
-
-
-    document
-      .getElementById(
-        'erro-codigo'
+        "erro-codigo"
       )
       .style.display =
-        'none';
+        "none";
+
+
+    setTimeout(
+
+      function() {
+
+        campo.focus();
+
+      },
+
+      100
+
+    );
 
   }
 
 );
 
 
-/* ============================= */
-/* RESETAR TELAS */
-/* ============================= */
+// ==========================================================
+// RESETAR
+// ==========================================================
 
 function resetar() {
 
   document
     .getElementById(
-      'overlay-msg'
+      "overlay-msg"
     )
     .style.display =
-      'none';
+      "none";
 
 
   document
     .getElementById(
-      'overlay-codigo'
+      "overlay-codigo"
     )
     .style.display =
-      'none';
+      "none";
 
 
   document
     .getElementById(
-      'texto-secreto'
+      "texto-secreto"
     )
     .textContent =
-      '';
+      "";
 
 
   document
     .getElementById(
-      'codigo-input'
+      "codigo-input"
     )
     .value =
-      '';
+      "";
 
 
   document
     .getElementById(
-      'resposta-texto'
+      "resposta-texto"
     )
     .value =
-      '';
+      "";
 
 
   document
     .getElementById(
-      'msg-enviado'
+      "msg-enviado"
     )
     .style.display =
-      'none';
+      "none";
 
 
   document
     .getElementById(
-      'erro-codigo'
+      "erro-codigo"
     )
     .style.display =
-      'none';
+      "none";
 
 
   mapa.closePopup();
@@ -932,36 +1049,49 @@ function resetar() {
 }
 
 
-/* ============================= */
-/* VERIFICAR NOVA MENSAGEM */
-/* ============================= */
+// ==========================================================
+// VERIFICAR BADGE
+// ==========================================================
 
 async function checkBadge() {
 
   try {
 
-    const r =
+    const resposta =
 
       await fetch(
 
-        'https://api.github.com/repos/'
+        "https://api.github.com/repos/"
         +
         REPO
         +
-        '/contents/mensagem.txt?ref=main&_='
+        "/contents/mensagem.txt?ref=main&_="
         +
         Date.now(),
 
         {
+
           cache:
-            'no-store'
+            "no-store"
+
         }
 
       );
 
 
+    if (!resposta.ok) {
+
+      throw new Error(
+        "Erro HTTP: "
+        +
+        resposta.status
+      );
+
+    }
+
+
     const data =
-      await r.json();
+      await resposta.json();
 
 
     const msg =
@@ -977,14 +1107,15 @@ async function checkBadge() {
 
     const hashLida =
       localStorage.getItem(
-        'msg_lida_hash'
+        "msg_lida_hash"
       );
 
 
     const badge =
-      document.getElementById(
-        'badge-novo'
-      );
+      document
+        .getElementById(
+          "badge-novo"
+        );
 
 
     if (
@@ -995,16 +1126,16 @@ async function checkBadge() {
 
     ) {
 
-      badge.classList.add(
-        'visivel'
+      badge.classList.remove(
+        "oculto"
       );
 
     }
 
     else {
 
-      badge.classList.remove(
-        'visivel'
+      badge.classList.add(
+        "oculto"
       );
 
     }
@@ -1012,43 +1143,61 @@ async function checkBadge() {
 
   }
 
-  catch (e) {
+  catch (erro) {
+
+    console.error(
+      "Erro ao verificar mensagem:",
+      erro
+    );
 
   }
 
 }
 
 
-/* ============================= */
-/* MOSTRAR MENSAGEM */
-/* ============================= */
+// ==========================================================
+// MOSTRAR MENSAGEM
+// ==========================================================
 
 async function mostrarMsg() {
 
   try {
 
-    const r =
+    const resposta =
 
       await fetch(
 
-        'https://api.github.com/repos/'
+        "https://api.github.com/repos/"
         +
         REPO
         +
-        '/contents/mensagem.txt?ref=main&_='
+        "/contents/mensagem.txt?ref=main&_="
         +
         Date.now(),
 
         {
+
           cache:
-            'no-store'
+            "no-store"
+
         }
 
       );
 
 
+    if (!resposta.ok) {
+
+      throw new Error(
+        "Erro HTTP: "
+        +
+        resposta.status
+      );
+
+    }
+
+
     const data =
-      await r.json();
+      await resposta.json();
 
 
     const msg =
@@ -1069,7 +1218,7 @@ async function mostrarMsg() {
 
     localStorage.setItem(
 
-      'msg_lida_hash',
+      "msg_lida_hash",
 
       hash(msg)
 
@@ -1078,24 +1227,24 @@ async function mostrarMsg() {
 
     document
       .getElementById(
-        'badge-novo'
+        "badge-novo"
       )
-      .classList.remove(
-        'visivel'
+      .classList.add(
+        "oculto"
       );
 
 
     document
       .getElementById(
-        'overlay-codigo'
+        "overlay-codigo"
       )
       .style.display =
-        'none';
+        "none";
 
 
     document
       .getElementById(
-        'texto-secreto'
+        "texto-secreto"
       )
       .textContent =
         msg;
@@ -1103,23 +1252,19 @@ async function mostrarMsg() {
 
     document
       .getElementById(
-        'overlay-msg'
+        "overlay-msg"
       )
       .style.display =
-        'flex';
-
-
-    document
-      .getElementById(
-        'btn-queimar'
-      )
-      .onclick =
-        resetar;
-
+        "flex";
 
   }
 
-  catch (e) {
+  catch (erro) {
+
+    console.error(
+      "Erro ao abrir mensagem:",
+      erro
+    );
 
     resetar();
 
@@ -1128,17 +1273,17 @@ async function mostrarMsg() {
 }
 
 
-/* ============================= */
-/* VERIFICAR CÓDIGO */
-/* ============================= */
+// ==========================================================
+// VERIFICAR CÓDIGO
+// ==========================================================
 
 function verificarCodigo() {
 
-  const val =
+  const valor =
 
     document
       .getElementById(
-        'codigo-input'
+        "codigo-input"
       )
       .value
       .trim()
@@ -1147,7 +1292,7 @@ function verificarCodigo() {
 
   if (
 
-    val === CODIGO
+    valor === CODIGO
 
   ) {
 
@@ -1159,19 +1304,19 @@ function verificarCodigo() {
 
     document
       .getElementById(
-        'erro-codigo'
+        "erro-codigo"
       )
       .style.display =
-        'block';
+        "block";
 
   }
 
 }
 
 
-/* ============================= */
-/* ENVIAR RESPOSTA */
-/* ============================= */
+// ==========================================================
+// ENVIAR RESPOSTA
+// ==========================================================
 
 async function enviarResposta() {
 
@@ -1179,7 +1324,7 @@ async function enviarResposta() {
 
     document
       .getElementById(
-        'resposta-texto'
+        "resposta-texto"
       )
       .value
       .trim();
@@ -1194,54 +1339,69 @@ async function enviarResposta() {
 
   try {
 
-    await fetch(
+    const resposta =
 
-      'https://ntfy.sh/'
-      +
-      NTFY_TOPICO,
+      await fetch(
 
-      {
+        "https://ntfy.sh/"
+        +
+        NTFY_TOPICO,
 
-        method:
-          'POST',
+        {
 
-        body:
-          texto,
+          method:
+            "POST",
 
-        headers: {
+          body:
+            texto,
 
-          'Title':
-            'Resposta do Mapa'
+          headers: {
+
+            "Title":
+              "Resposta do Mapa"
+
+          }
 
         }
 
-      }
+      );
 
-    );
+
+    if (!resposta.ok) {
+
+      throw new Error(
+        "Erro ao enviar resposta"
+      );
+
+    }
 
 
     document
       .getElementById(
-        'msg-enviado'
+        "msg-enviado"
       )
       .style.display =
-        'block';
+        "block";
 
 
     document
       .getElementById(
-        'resposta-texto'
+        "resposta-texto"
       )
       .value =
-        '';
+        "";
 
 
   }
 
-  catch (e) {
+  catch (erro) {
+
+    console.error(
+      erro
+    );
 
     alert(
-      'Erro ao enviar.'
+      "Erro ao enviar."
     );
 
   }
@@ -1249,41 +1409,41 @@ async function enviarResposta() {
 }
 
 
-/* ============================= */
-/* EVENTOS */
-/* ============================= */
+// ==========================================================
+// EVENTO BOTÃO ABRIR
+// ==========================================================
 
 document
-
   .getElementById(
-    'btn-abrir'
+    "btn-abrir"
   )
-
   .addEventListener(
 
-    'click',
+    "click",
 
     verificarCodigo
 
   );
 
 
+// ==========================================================
+// ENTER NO CÓDIGO
+// ==========================================================
+
 document
-
   .getElementById(
-    'codigo-input'
+    "codigo-input"
   )
-
   .addEventListener(
 
-    'keypress',
+    "keypress",
 
-    e => {
+    function(evento) {
 
       if (
 
-        e.key ===
-        'Enter'
+        evento.key ===
+        "Enter"
 
       ) {
 
@@ -1296,37 +1456,41 @@ document
   );
 
 
+// ==========================================================
+// BOTÃO ENVIAR RESPOSTA
+// ==========================================================
+
 document
-
   .getElementById(
-    'btn-enviar-resposta'
+    "btn-enviar-resposta"
   )
-
   .addEventListener(
 
-    'click',
+    "click",
 
     enviarResposta
 
   );
 
 
+// ==========================================================
+// CLICAR FORA DO LOGIN
+// ==========================================================
+
 document
-
   .getElementById(
-    'overlay-codigo'
+    "overlay-codigo"
   )
-
   .addEventListener(
 
-    'click',
+    "click",
 
-    e => {
+    function(evento) {
 
       if (
 
-        e.target ===
-        e.currentTarget
+        evento.target ===
+        evento.currentTarget
 
       ) {
 
@@ -1339,22 +1503,24 @@ document
   );
 
 
+// ==========================================================
+// CLICAR FORA DA CARTA
+// ==========================================================
+
 document
-
   .getElementById(
-    'overlay-msg'
+    "overlay-msg"
   )
-
   .addEventListener(
 
-    'click',
+    "click",
 
-    e => {
+    function(evento) {
 
       if (
 
-        e.target ===
-        e.currentTarget
+        evento.target ===
+        evento.currentTarget
 
       ) {
 
@@ -1367,12 +1533,33 @@ document
   );
 
 
-/* ============================= */
-/* INICIALIZAÇÃO */
-/* ============================= */
+// ==========================================================
+// BOTÃO QUEIMAR CARTA
+// ==========================================================
+
+document
+  .getElementById(
+    "btn-queimar"
+  )
+  .addEventListener(
+
+    "click",
+
+    resetar
+
+  );
+
+
+// ==========================================================
+// INICIAR VERIFICAÇÃO
+// ==========================================================
 
 checkBadge();
 
+
+// ==========================================================
+// VERIFICAR A CADA 10 SEGUNDOS
+// ==========================================================
 
 setInterval(
 
@@ -1383,6 +1570,7 @@ setInterval(
 );
 
 </script>
+
 
 </body>
 
