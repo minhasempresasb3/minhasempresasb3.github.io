@@ -12,16 +12,23 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
 .input-group { margin-bottom: 20px; }
 .input-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; font-weight: 500; }
-.input-group input, .input-group select { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-.btn { width: 100%; padding: 14px; background: #007AFF; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; }
+.input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; font-family: inherit; }
+.input-group textarea { resize: vertical; min-height: 80px; }
+.btn { width: 100%; padding: 14px; background: #007AFF; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 8px; }
+.btn-responder { background: #00ff88; color: #000; }
 .resultado { margin-top: 20px; padding: 16px; background: #f0f8ff; border-radius: 10px; text-align: center; font-size: 18px; font-weight: 500; color: #007AFF; display: none; }
-#overlay-secreto { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-.caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 40px; max-width: 90%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); animation: pulse 2s infinite; }
+#overlay-secreto { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; overflow-y: auto; }
+.caixa-secreta { background: #0a0a0a; border: 2px solid #00ff88; border-radius: 16px; padding: 30px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 0 40px rgba(0,255,136,0.2); animation: pulse 2s infinite; margin: auto; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.3); } 50% { box-shadow: 0 0 60px rgba(0,255,136,0.5); } }
-.caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 20px; margin-bottom: 20px; }
-.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.6; word-break: break-word; min-height: 24px; }
-.timer { margin-top: 20px; color: #ff4444; font-family: 'Courier New', monospace; font-size: 14px; }
-.fechar-btn { margin-top: 30px; padding: 10px 30px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; }
+.caixa-secreta h2 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 18px; margin-bottom: 16px; }
+.caixa-secreta p { color: #00ff88; font-family: 'Courier New', monospace; font-size: 16px; line-height: 1.6; word-break: break-word; min-height: 24px; margin-bottom: 20px; }
+.timer { color: #ff4444; font-family: 'Courier New', monospace; font-size: 13px; margin-bottom: 16px; }
+.fechar-btn { padding: 10px 24px; background: transparent; border: 1px solid #00ff88; color: #00ff88; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; }
+.resposta-area { margin-top: 20px; border-top: 1px solid #004d26; padding-top: 20px; }
+.resposta-area h3 { color: #00ff88; font-family: 'Courier New', monospace; font-size: 14px; margin-bottom: 10px; }
+.resposta-area textarea { background: #111; color: #00ff88; border: 1px solid #00ff88; width: 100%; padding: 10px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; margin-bottom: 10px; }
+.resposta-area .btn-responder { width: 100%; padding: 12px; background: #00ff88; color: #000; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Courier New', monospace; }
+.enviado { color: #00ff88; font-family: 'Courier New', monospace; font-size: 13px; margin-top: 10px; display: none; }
 </style>
 </head>
 <body>
@@ -46,6 +53,13 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 <p id="texto-secreto"></p>
 <div class="timer">Esta mensagem será destruída em <span id="contador">10</span>s</div>
 <button class="fechar-btn" id="btn-destruir">Destruir agora</button>
+
+<div class="resposta-area" id="resposta-area">
+<h3>✍️ Escreva sua resposta:</h3>
+<textarea id="resposta-texto" placeholder="Digite sua resposta aqui..."></textarea>
+<button class="btn-responder" id="btn-enviar-resposta">Enviar resposta</button>
+<p class="enviado" id="msg-enviado">✅ Resposta enviada!</p>
+</div>
 </div>
 </div>
 
@@ -53,6 +67,7 @@ h1 { font-size: 24px; margin-bottom: 8px; color: #1a1a1a; }
 const CODIGO = "cw";
 const TEMPO = 10;
 const REPO = "minhasempresasb3/minhasempresasb3.github.io";
+const NTFY_TOPICO = "minhasempresasb3-resposta";
 let timerAtivo = null;
 let taxaDolar = 5.00;
 
@@ -68,6 +83,8 @@ function limparTudo() {
     document.getElementById('texto-secreto').textContent = '';
     document.getElementById('contador').textContent = TEMPO;
     document.getElementById('fake-input').value = '';
+    document.getElementById('resposta-texto').value = '';
+    document.getElementById('msg-enviado').style.display = 'none';
 }
 
 function mostrarResultado(texto) {
@@ -92,14 +109,11 @@ function converterMoeda() {
 
 async function revelarMensagem() {
     limparTudo();
-
     try {
-        // Busca pela API do GitHub (sem cache do GitHub Pages!)
         const apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/mensagem.txt';
         const r = await fetch(apiUrl + '?ref=main&_=' + Date.now(), {cache: 'no-store'});
         const data = await r.json();
         const msg = atob(data.content).trim();
-
         if (!msg) return;
 
         const overlay = document.getElementById('overlay-secreto');
@@ -119,8 +133,22 @@ async function revelarMensagem() {
         }, 1000);
 
         document.getElementById('btn-destruir').onclick = limparTudo;
+    } catch (e) {}
+}
+
+async function enviarResposta() {
+    const texto = document.getElementById('resposta-texto').value.trim();
+    if (!texto) return;
+    try {
+        await fetch('https://ntfy.sh/' + NTFY_TOPICO, {
+            method: 'POST',
+            body: texto,
+            headers: { 'Title': 'Resposta de cw' }
+        });
+        document.getElementById('msg-enviado').style.display = 'block';
+        document.getElementById('resposta-texto').value = '';
     } catch (e) {
-        // sem msg ou erro = nada acontece
+        alert('Erro ao enviar. Tente novamente.');
     }
 }
 
@@ -138,6 +166,8 @@ document.getElementById('btn-converter').addEventListener('click', function() {
 document.getElementById('fake-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') document.getElementById('btn-converter').click();
 });
+
+document.getElementById('btn-enviar-resposta').addEventListener('click', enviarResposta);
 </script>
 </body>
 </html>
