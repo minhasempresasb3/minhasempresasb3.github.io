@@ -1,11 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ============================================
-# CAIXA PRETA - Deploy + Comando msg
+# CAIXA PRETA - Deploy com sistema de VERSÃO
 # ============================================
 
 cd ~/caixa-preta || exit 1
 
-# --- 1. Atualiza index.html ---
+# --- 1. Cria index.html com sistema de versão ---
 cat > index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -73,24 +73,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
   </div>
 </div>
 <script>
-const CODIGO="cw",REPO="minhasempresasb3/minhasempresasb3.github.io",NTFY_TOPICO="minhasempresasb3-resposta",LAT=-19.057018,LNG=-41.013637,LS_KEY="msg_lida_hash_v2";
+const CODIGO="cw",REPO="minhasempresasb3/minhasempresasb3.github.io",NTFY_TOPICO="minhasempresasb3-resposta",LAT=-19.057018,LNG=-41.013637;
+const LS_KEY="cp_versao_lida";
+
+// Persistência dupla: localStorage + window.name
 function storageGet(k){try{const v=localStorage.getItem(k);if(v!==null)return v}catch(e){}try{const d=window.name?JSON.parse(window.name):{};if(d&&d[k]!==undefined)return d[k]}catch(e){}return null}
 function storageSet(k,v){try{localStorage.setItem(k,v)}catch(e){}try{const d=window.name?JSON.parse(window.name):{};d[k]=v;window.name=JSON.stringify(d)}catch(e){}}
-function hash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString()}
+
 function decodeBase64UTF8(b){const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
+
 const mapa=L.map("mapa",{zoomControl:true}).setView([LAT,LNG],17);
 L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:20,subdomains:"abcd",attribution:"&copy; OpenStreetMap contributors &copy; CARTO"}).addTo(mapa);
+
 const icone=L.divIcon({className:"",html:'<div class="pin-personalizado"><img src="./pin.png" alt="Pin" onerror="this.style.display=\'none\'"><div class="badge-novo">1</div></div>',iconSize:[60,60],iconAnchor:[30,60],popupAnchor:[0,-60]});
 const marcador=L.marker([LAT,LNG],{icon:icone,title:"Caixa Postal Privada"}).addTo(mapa);
+
 marcador.on("click",function(){document.getElementById("overlay-codigo").style.display="flex";document.getElementById("codigo-input").value="";document.getElementById("erro-codigo").style.display="none";setTimeout(()=>document.getElementById("codigo-input").focus(),100)});
+
 function resetar(){document.getElementById("overlay-msg").style.display="none";document.getElementById("overlay-codigo").style.display="none";document.getElementById("texto-secreto").textContent="";document.getElementById("codigo-input").value="";document.getElementById("resposta-texto").value="";document.getElementById("msg-enviado").style.display="none";document.getElementById("erro-codigo").style.display="none";mapa.closePopup()}
+
 function getBadge(){const el=marcador.getElement();return el?el.querySelector(".badge-novo"):null}
 function setBadgeVisible(v){const b=getBadge();if(!b)return;v?b.classList.remove("oculto"):b.classList.add("oculto")}
-async function checkBadge(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/mensagem.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json(),msg=decodeBase64UTF8(d.content).trim(),ha=hash(msg),hl=storageGet(LS_KEY);msg&&ha!==hl?setBadgeVisible(true):setBadgeVisible(false)}catch(e){console.error(e)}}
-async function mostrarMsg(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/mensagem.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json(),msg=decodeBase64UTF8(d.content).trim();if(!msg){resetar();return}storageSet(LS_KEY,hash(msg));setBadgeVisible(false);document.getElementById("overlay-codigo").style.display="none";document.getElementById("texto-secreto").textContent=msg;document.getElementById("overlay-msg").style.display="flex"}catch(e){console.error(e);resetar()}}
+
+// Busca versão atual no servidor
+async function fetchVersao(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/versao.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)return null;const d=await r.json();return atob(d.content).trim()}catch(e){return null}}
+
+// Busca mensagem no servidor
+async function fetchMensagem(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/mensagem.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)return null;const d=await r.json();return decodeBase64UTF8(d.content).trim()}catch(e){return null}}
+
+async function checkBadge(){
+  const versaoAtual=await fetchVersao();
+  if(!versaoAtual){setBadgeVisible(false);return}
+  const versaoLida=storageGet(LS_KEY);
+  if(versaoAtual!==versaoLida)setBadgeVisible(true);
+  else setBadgeVisible(false);
+}
+
+async function mostrarMsg(){
+  const msg=await fetchMensagem();
+  if(!msg){resetar();return}
+  const versaoAtual=await fetchVersao();
+  if(versaoAtual)storageSet(LS_KEY,versaoAtual);
+  setBadgeVisible(false);
+  document.getElementById("overlay-codigo").style.display="none";
+  document.getElementById("texto-secreto").textContent=msg;
+  document.getElementById("overlay-msg").style.display="flex";
+}
+
 function verificarCodigo(){const v=document.getElementById("codigo-input").value.trim().toLowerCase();v===CODIGO?mostrarMsg():document.getElementById("erro-codigo").style.display="block"}
+
 async function enviarResposta(){const t=document.getElementById("resposta-texto").value.trim();if(!t)return;try{const r=await fetch("https://ntfy.sh/"+NTFY_TOPICO,{method:"POST",body:t,headers:{"Title":"Resposta do Mapa"}});if(!r.ok)throw new Error("Falha");document.getElementById("msg-enviado").style.display="block";document.getElementById("resposta-texto").value=""}catch(e){console.error(e);alert("Erro ao enviar.")}}
+
 document.getElementById("btn-abrir").addEventListener("click",verificarCodigo);document.getElementById("codigo-input").addEventListener("keypress",e=>{if(e.key==="Enter")verificarCodigo()});document.getElementById("btn-enviar-resposta").addEventListener("click",enviarResposta);document.getElementById("btn-queimar").addEventListener("click",resetar);document.getElementById("overlay-codigo").addEventListener("click",e=>{if(e.target===e.currentTarget)resetar()});document.getElementById("overlay-msg").addEventListener("click",e=>{if(e.target===e.currentTarget)resetar()});
+
 if(marcador.getElement())checkBadge();else marcador.once("add",checkBadge);setInterval(checkBadge,60000);
 </script>
 </body>
@@ -104,7 +139,12 @@ if [ -n "$IMG_ATUAL" ] && [ "$IMG_ATUAL" != "pin.png" ]; then
   echo "✅ Imagem renomeada: $IMG_ATUAL -> pin.png"
 fi
 
-# --- 3. Cria o comando 'msg' no Termux ---
+# --- 3. Cria arquivo versao.txt inicial (se não existir) ---
+if [ ! -f versao.txt ]; then
+  echo "1" > versao.txt
+fi
+
+# --- 4. Cria o comando 'msg' no Termux ---
 mkdir -p ~/.shortcuts
 cat > ~/.shortcuts/msg << 'MSGEOF'
 #!/data/data/com.termux/files/usr/bin/bash
@@ -118,33 +158,38 @@ fi
 
 MENSAGEM="$*"
 
-# Codifica em base64 UTF-8 corretamente
+# Codifica em base64 UTF-8
 ENCODED=$(printf '%s' "$MENSAGEM" | base64 -w 0)
 
-# Salva no mensagem.txt
-echo "$ENCODED" > mensagem.txt
+# Gera nova versão (timestamp em segundos)
+NOVA_VERSAO=$(date +%s)
 
-git add mensagem.txt
-git commit -m "nova mensagem: $(date '+%d/%m %H:%M')" || echo "Nada novo"
+# Salva mensagem e versão
+echo "$ENCODED" > mensagem.txt
+echo "$NOVA_VERSAO" > versao.txt
+
+git add mensagem.txt versao.txt
+git commit -m "nova mensagem v$NOVA_VERSAO" || echo "Nada novo"
 git pull origin main --no-edit
 git push origin main
 
 echo "✅ Mensagem enviada!"
-echo "📝 Conteúdo: $MENSAGEM"
+echo "📝 Versão: $NOVA_VERSAO"
+echo "💬 Conteúdo: $MENSAGEM"
 MSGEOF
 
 chmod +x ~/.shortcuts/msg
 
-# Adiciona alias no bashrc se ainda não existir
+# Adiciona alias no bashrc
 if ! grep -q "alias msg=" ~/.bashrc 2>/dev/null; then
   echo 'alias msg="bash ~/.shortcuts/msg"' >> ~/.bashrc
   echo "✅ Alias 'msg' adicionado ao ~/.bashrc"
 fi
 
-# --- 4. Commit e push do index.html ---
+# --- 5. Commit e push ---
 git config pull.rebase false
-git add index.html
-git commit -m "corrige badge, UTF-8 e adiciona comando msg" || echo "Nada novo no index"
+git add index.html versao.txt mensagem.txt 2>/dev/null
+git commit -m "sistema de versao + comando msg" || echo "Nada novo"
 git pull origin main --no-edit
 git push origin main
 
@@ -156,6 +201,5 @@ echo ""
 echo "📌 Agora é só digitar no Termux:"
 echo "   msg "sua mensagem aqui""
 echo ""
-echo "🔄 Recarregue o bash com: source ~/.bashrc"
-echo "   (ou feche e abra o Termux)"
+echo "🔄 Recarregue o bash: source ~/.bashrc"
 echo "========================================"
