@@ -25,6 +25,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .pin-casa .badge.visivel { display: flex; }
 @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
+.popup-fake { font-size: 13px; color: #555; }
+.popup-fake h4 { margin: 0 0 5px 0; font-size: 14px; color: #333; }
+
 #overlay-codigo {
   display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.85); z-index: 10000;
@@ -65,6 +68,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .carta h2 { color: #5c3a1e; font-family: 'Courier New', monospace; font-size: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
 .carta .remetente { color: #8b7355; font-size: 12px; margin-bottom: 20px; }
 .carta p { color: #3d2817; font-family: 'Courier New', monospace; font-size: 17px; line-height: 1.7; word-break: break-word; margin-bottom: 20px; min-height: 30px; }
+.carta .timer { color: #8b4513; font-family: 'Courier New', monospace; font-size: 12px; margin-bottom: 20px; }
 .carta .fechar-btn { padding: 10px 24px; background: transparent; border: 2px solid #8b4513; color: #8b4513; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; }
 .carta .resposta-area { margin-top: 20px; border-top: 1px solid #c4b090; padding-top: 15px; text-align: left; }
 .carta .resposta-area h3 { color: #5c3a1e; font-family: 'Courier New', monospace; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
@@ -92,6 +96,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <h2>📬 Carta Confidencial</h2>
     <div class="remetente">Remetente: Anônimo</div>
     <p id="texto-secreto"></p>
+    <div class="timer">Esta carta se autodestruirá em <span id="contador">10</span>s</div>
     <button class="fechar-btn" id="btn-queimar">Queimar carta</button>
     <div class="resposta-area">
       <h3>✍️ Escrever resposta</h3>
@@ -104,27 +109,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 <script>
 const CODIGO = "cw";
+const TEMPO = 10;
 const REPO = "minhasempresasb3/minhasempresasb3.github.io";
 const NTFY_TOPICO = "minhasempresasb3-resposta";
 const LAT = -19.056974;
 const LNG = -41.013636;
-
-function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i);
-  return h.toString();
-}
+let timerAtivo = null;
 
 const mapa = L.map('mapa', { zoomControl: false }).setView([LAT, LNG], 17);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapa);
 
 const icone = L.divIcon({
   className: 'pin-casa',
-  html: '<div class="pin-casa"><div class="icone">👨🏻‍🦱</div><div class="badge visivel" id="badge-novo">1</div></div>',
+  html: '<div class="pin-casa"><div class="icone">🏠</div><div class="badge visivel" id="badge-novo">1</div></div>',
   iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40]
 });
 const marcador = L.marker([LAT, LNG], { icon: icone }).addTo(mapa);
-marcador.bindPopup('<div style="font-size:13px;color:#555;"><h4 style="margin:0 0 5px;font-size:14px;color:#333;">📍 Local do remetente</h4>Carta enviada daqui</div>');
+marcador.bindPopup('<div style="font-size:13px;color:#555;"><h4 style="margin:0 0 5px;font-size:14px;color:#333;">🏠 Residência</h4>Local privado</div>');
 
 marcador.on('click', () => {
   document.getElementById('overlay-codigo').style.display = 'flex';
@@ -133,10 +134,18 @@ marcador.on('click', () => {
   document.getElementById('erro-codigo').style.display = 'none';
 });
 
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i);
+  return h.toString();
+}
+
 function resetar() {
+  clearInterval(timerAtivo); timerAtivo = null;
   document.getElementById('overlay-msg').style.display = 'none';
   document.getElementById('overlay-codigo').style.display = 'none';
   document.getElementById('texto-secreto').textContent = '';
+  document.getElementById('contador').textContent = TEMPO;
   document.getElementById('codigo-input').value = '';
   document.getElementById('resposta-texto').value = '';
   document.getElementById('msg-enviado').style.display = 'none';
@@ -146,30 +155,50 @@ function resetar() {
 
 async function checkBadge() {
   try {
-    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/mensagem.txt';
+    const r = await fetch(apiUrl + '?ref=main&_=' + Date.now(), {cache: 'no-store'});
     const data = await r.json();
     const msg = atob(data.content).trim();
     const hashAtual = hash(msg);
     const hashLida = localStorage.getItem('msg_lida_hash');
+
     const badge = document.getElementById('badge-novo');
-    if (msg && hashAtual !== hashLida) badge.classList.add('visivel');
-    else badge.classList.remove('visivel');
+    if (msg && hashAtual !== hashLida) {
+      badge.classList.add('visivel');
+    } else {
+      badge.classList.remove('visivel');
+    }
   } catch (e) {}
 }
 
 async function mostrarMsg() {
   try {
-    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/mensagem.txt';
+    const r = await fetch(apiUrl + '?ref=main&_=' + Date.now(), {cache: 'no-store'});
     const data = await r.json();
     const msg = atob(data.content).trim();
+
     if (!msg) { resetar(); return; }
 
+    // Marca como lida (salva hash da mensagem)
     localStorage.setItem('msg_lida_hash', hash(msg));
     document.getElementById('badge-novo').classList.remove('visivel');
 
     document.getElementById('overlay-codigo').style.display = 'none';
-    document.getElementById('texto-secreto').textContent = msg;
-    document.getElementById('overlay-msg').style.display = 'flex';
+    const overlay = document.getElementById('overlay-msg');
+    const textoEl = document.getElementById('texto-secreto');
+    const contadorEl = document.getElementById('contador');
+
+    textoEl.textContent = msg;
+    overlay.style.display = 'flex';
+
+    let segundos = TEMPO;
+    contadorEl.textContent = segundos;
+    timerAtivo = setInterval(() => {
+      segundos--;
+      contadorEl.textContent = segundos;
+      if (segundos <= 0) resetar();
+    }, 1000);
     document.getElementById('btn-queimar').onclick = resetar;
 
   } catch (e) { resetar(); }
@@ -199,6 +228,7 @@ document.getElementById('btn-enviar-resposta').addEventListener('click', enviarR
 document.getElementById('overlay-codigo').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
 document.getElementById('overlay-msg').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
 
+// Verifica badge a cada 10 segundos
 checkBadge();
 setInterval(checkBadge, 10000);
 </script>
