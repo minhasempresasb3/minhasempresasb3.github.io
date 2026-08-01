@@ -7,35 +7,70 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-#mapa{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#d7eaf0;z-index:1}
-.pin-personalizado{position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center}
-.pin-personalizado img{display:block;width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))}
-.badge-novo{position:absolute;top:-6px;right:-6px;width:22px;height:22px;background:#ff4444;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.4);animation:pulsar 1.5s infinite}
-.badge-novo.oculto{display:none}
-@keyframes pulsar{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
-#overlay-codigo{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;padding:20px}
-.caixa-codigo{background:white;border-radius:16px;padding:30px;max-width:320px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
-.caixa-codigo h3{font-size:16px;color:#333;margin-bottom:5px}
-.caixa-codigo p{font-size:13px;color:#888;margin-bottom:20px}
-.caixa-codigo input{width:100%;padding:14px;border:2px solid #ddd;border-radius:10px;font-size:18px;text-align:center;letter-spacing:3px;margin-bottom:15px;outline:none}
-.caixa-codigo input:focus{border-color:#007AFF}
-.caixa-codigo button{width:100%;padding:14px;background:#007AFF;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-.caixa-codigo .erro{color:#ff4444;font-size:13px;margin-top:10px;display:none}
-#overlay-msg{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;padding:20px}
-.carta{background:linear-gradient(135deg,#f5f5dc 0%,#e8dcc0 100%);border-radius:12px;padding:35px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;text-align:center;box-shadow:0 0 50px rgba(212,175,55,0.3);animation:surgir 0.5s ease}
-@keyframes surgir{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
-.carta h2{color:#5c3a1e;font-family:"Courier New",monospace;font-size:15px;margin-bottom:5px;text-transform:uppercase;letter-spacing:2px}
-.carta .remetente{color:#8b7355;font-size:12px;margin-bottom:20px}
-#texto-secreto{color:#3d2817;font-family:"Courier New",monospace;font-size:17px;line-height:1.7;word-break:break-word;margin-bottom:20px;min-height:30px}
-.fechar-btn{padding:10px 24px;background:transparent;border:2px solid #8b4513;color:#8b4513;border-radius:8px;cursor:pointer;font-family:"Courier New",monospace;font-size:13px;font-weight:bold}
-.resposta-area{margin-top:20px;border-top:1px solid #c4b090;padding-top:15px;text-align:left}
-.resposta-area h3{color:#5c3a1e;font-family:"Courier New",monospace;font-size:11px;margin-bottom:8px;text-transform:uppercase}
-.resposta-area textarea{width:100%;background:rgba(255,255,255,0.5);color:#3d2817;border:1px solid #8b4513;padding:10px;border-radius:6px;font-family:"Courier New",monospace;font-size:13px;min-height:60px;resize:vertical;margin-bottom:8px}
-.btn-enviar{width:100%;padding:10px;background:#8b4513;color:#f5f5dc;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:"Courier New",monospace;font-size:13px}
-.enviado{color:#228b22;font-family:"Courier New",monospace;font-size:11px;margin-top:8px;display:none;text-align:center}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+#mapa { width: 100vw; height: 100vh; }
+
+.pin-casa { position: relative; width: 40px; height: 40px; }
+.pin-casa .icone { font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+.pin-casa .badge {
+  position: absolute; top: -5px; right: -8px;
+  background: #ff4444; color: white; border-radius: 50%;
+  width: 22px; height: 22px; display: none;
+  align-items: center; justify-content: center;
+  font-size: 12px; font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  animation: pulsar 1.5s infinite;
+}
+.pin-casa .badge.visivel { display: flex; }
+@keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+#overlay-codigo {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85); z-index: 10000;
+  justify-content: center; align-items: center; padding: 20px;
+}
+.caixa-codigo {
+  background: white; border-radius: 16px; padding: 30px;
+  max-width: 320px; width: 100%; text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+.caixa-codigo h3 { font-size: 16px; color: #333; margin-bottom: 5px; }
+.caixa-codigo p { font-size: 13px; color: #888; margin-bottom: 20px; }
+.caixa-codigo input {
+  width: 100%; padding: 14px; border: 2px solid #ddd;
+  border-radius: 10px; font-size: 18px; text-align: center;
+  letter-spacing: 3px; margin-bottom: 15px; outline: none;
+}
+.caixa-codigo input:focus { border-color: #007AFF; }
+.caixa-codigo button {
+  width: 100%; padding: 14px; background: #007AFF;
+  color: white; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.caixa-codigo .erro { color: #ff4444; font-size: 13px; margin-top: 10px; display: none; }
+
+#overlay-msg {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.9); z-index: 9999;
+  justify-content: center; align-items: center; padding: 20px;
+}
+.carta {
+  background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc0 100%);
+  border-radius: 12px; padding: 35px; max-width: 420px; width: 100%;
+  text-align: center; box-shadow: 0 0 50px rgba(212,175,55,0.3);
+  animation: surgir 0.5s ease;
+}
+@keyframes surgir { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.carta h2 { color: #5c3a1e; font-family: 'Courier New', monospace; font-size: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+.carta .remetente { color: #8b7355; font-size: 12px; margin-bottom: 20px; }
+.carta p { color: #3d2817; font-family: 'Courier New', monospace; font-size: 17px; line-height: 1.7; word-break: break-word; margin-bottom: 20px; min-height: 30px; }
+.carta .fechar-btn { padding: 10px 24px; background: transparent; border: 2px solid #8b4513; color: #8b4513; border-radius: 8px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; }
+.carta .resposta-area { margin-top: 20px; border-top: 1px solid #c4b090; padding-top: 15px; text-align: left; }
+.carta .resposta-area h3 { color: #5c3a1e; font-family: 'Courier New', monospace; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
+.carta .resposta-area textarea { width: 100%; background: rgba(255,255,255,0.5); color: #3d2817; border: 1px solid #8b4513; padding: 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; min-height: 60px; resize: vertical; margin-bottom: 8px; }
+.carta .resposta-area .btn-enviar { width: 100%; padding: 10px; background: #8b4513; color: #f5f5dc; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Courier New', monospace; font-size: 13px; }
+.carta .enviado { color: #228b22; font-family: 'Courier New', monospace; font-size: 11px; margin-top: 8px; display: none; text-align: center; }
 </style>
 </head>
 <body>
@@ -71,124 +106,101 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 const CODIGO = "cw";
 const REPO = "minhasempresasb3/minhasempresasb3.github.io";
 const NTFY_TOPICO = "minhasempresasb3-resposta";
-const LAT = -19.057018;
-const LNG = -41.013637;
+const LAT = -19.056974;
+const LNG = -41.013636;
 
 function hash(str) {
   let h = 0;
-  for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i);
   return h.toString();
 }
 
-const mapa = L.map("mapa", { zoomControl: true }).setView([LAT, LNG], 17);
-
-const camadaMapa = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-  maxZoom: 20,
-  subdomains: "abcd",
-  attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
-});
-camadaMapa.addTo(mapa);
+const mapa = L.map('mapa', { zoomControl: false }).setView([LAT, LNG], 17);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapa);
 
 const icone = L.divIcon({
-  className: "",
-  html: `
-    <div class="pin-personalizado">
-      <img src="./1000498337.png" alt="Pin personalizado">
-      <div id="badge-novo" class="badge-novo">1</div>
-    </div>
-  `,
-  iconSize: [60, 60],
-  iconAnchor: [30, 60],
-  popupAnchor: [0, -60]
+  className: 'pin-casa',
+  html: '<div class="pin-casa"><div class="icone">👨🏻‍🦱</div><div class="badge visivel" id="badge-novo">1</div></div>',
+  iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40]
 });
+const marcador = L.marker([LAT, LNG], { icon: icone }).addTo(mapa);
+marcador.bindPopup('<div style="font-size:13px;color:#555;"><h4 style="margin:0 0 5px;font-size:14px;color:#333;">📍 Local do remetente</h4>Carta enviada daqui</div>');
 
-const marcador = L.marker([LAT, LNG], { icon: icone, title: "Caixa Postal Privada" }).addTo(mapa);
-
-marcador.on("click", function() {
-  const overlay = document.getElementById("overlay-codigo");
-  const campo = document.getElementById("codigo-input");
-  overlay.style.display = "flex";
-  campo.value = "";
-  document.getElementById("erro-codigo").style.display = "none";
-  setTimeout(function() { campo.focus(); }, 100);
+marcador.on('click', () => {
+  document.getElementById('overlay-codigo').style.display = 'flex';
+  document.getElementById('codigo-input').value = '';
+  document.getElementById('codigo-input').focus();
+  document.getElementById('erro-codigo').style.display = 'none';
 });
 
 function resetar() {
-  document.getElementById("overlay-msg").style.display = "none";
-  document.getElementById("overlay-codigo").style.display = "none";
-  document.getElementById("texto-secreto").textContent = "";
-  document.getElementById("codigo-input").value = "";
-  document.getElementById("resposta-texto").value = "";
-  document.getElementById("msg-enviado").style.display = "none";
-  document.getElementById("erro-codigo").style.display = "none";
+  document.getElementById('overlay-msg').style.display = 'none';
+  document.getElementById('overlay-codigo').style.display = 'none';
+  document.getElementById('texto-secreto').textContent = '';
+  document.getElementById('codigo-input').value = '';
+  document.getElementById('resposta-texto').value = '';
+  document.getElementById('msg-enviado').style.display = 'none';
+  document.getElementById('erro-codigo').style.display = 'none';
   mapa.closePopup();
 }
 
 async function checkBadge() {
   try {
-    const resposta = await fetch("https://api.github.com/repos/" + REPO + "/contents/mensagem.txt?ref=main&_=" + Date.now(), { cache: "no-store" });
-    if (!resposta.ok) throw new Error("HTTP " + resposta.status);
-    const data = await resposta.json();
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const data = await r.json();
     const msg = atob(data.content).trim();
     const hashAtual = hash(msg);
-    const hashLida = localStorage.getItem("msg_lida_hash");
-    const badge = document.getElementById("badge-novo");
-    if (msg && hashAtual !== hashLida) badge.classList.remove("oculto");
-    else badge.classList.add("oculto");
-  } catch (erro) {
-    console.error("Erro ao verificar mensagem:", erro);
-  }
+    const hashLida = localStorage.getItem('msg_lida_hash');
+    const badge = document.getElementById('badge-novo');
+    if (msg && hashAtual !== hashLida) badge.classList.add('visivel');
+    else badge.classList.remove('visivel');
+  } catch (e) {}
 }
 
 async function mostrarMsg() {
   try {
-    const resposta = await fetch("https://api.github.com/repos/" + REPO + "/contents/mensagem.txt?ref=main&_=" + Date.now(), { cache: "no-store" });
-    if (!resposta.ok) throw new Error("HTTP " + resposta.status);
-    const data = await resposta.json();
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const data = await r.json();
     const msg = atob(data.content).trim();
     if (!msg) { resetar(); return; }
-    localStorage.setItem("msg_lida_hash", hash(msg));
-    document.getElementById("badge-novo").classList.add("oculto");
-    document.getElementById("overlay-codigo").style.display = "none";
-    document.getElementById("texto-secreto").textContent = msg;
-    document.getElementById("overlay-msg").style.display = "flex";
-  } catch (erro) {
-    console.error("Erro ao abrir mensagem:", erro);
-    resetar();
-  }
+
+    localStorage.setItem('msg_lida_hash', hash(msg));
+    document.getElementById('badge-novo').classList.remove('visivel');
+
+    document.getElementById('overlay-codigo').style.display = 'none';
+    document.getElementById('texto-secreto').textContent = msg;
+    document.getElementById('overlay-msg').style.display = 'flex';
+    document.getElementById('btn-queimar').onclick = resetar;
+
+  } catch (e) { resetar(); }
 }
 
 function verificarCodigo() {
-  const valor = document.getElementById("codigo-input").value.trim().toLowerCase();
-  if (valor === CODIGO) mostrarMsg();
-  else document.getElementById("erro-codigo").style.display = "block";
+  const val = document.getElementById('codigo-input').value.trim().toLowerCase();
+  if (val === CODIGO) mostrarMsg();
+  else document.getElementById('erro-codigo').style.display = 'block';
 }
 
 async function enviarResposta() {
-  const texto = document.getElementById("resposta-texto").value.trim();
+  const texto = document.getElementById('resposta-texto').value.trim();
   if (!texto) return;
   try {
-    const resposta = await fetch("https://ntfy.sh/" + NTFY_TOPICO, {
-      method: "POST", body: texto, headers: { "Title": "Resposta do Mapa" }
+    await fetch('https://ntfy.sh/' + NTFY_TOPICO, {
+      method: 'POST', body: texto, headers: { 'Title': 'Resposta do Mapa' }
     });
-    if (!resposta.ok) throw new Error("Falha ao enviar");
-    document.getElementById("msg-enviado").style.display = "block";
-    document.getElementById("resposta-texto").value = "";
-  } catch (erro) {
-    console.error(erro);
-    alert("Erro ao enviar.");
-  }
+    document.getElementById('msg-enviado').style.display = 'block';
+    document.getElementById('resposta-texto').value = '';
+  } catch (e) { alert('Erro ao enviar.'); }
 }
 
-document.getElementById("btn-abrir").addEventListener("click", verificarCodigo);
-document.getElementById("codigo-input").addEventListener("keypress", function(e) { if (e.key === "Enter") verificarCodigo(); });
-document.getElementById("btn-enviar-resposta").addEventListener("click", enviarResposta);
-document.getElementById("btn-queimar").addEventListener("click", resetar);
-document.getElementById("overlay-codigo").addEventListener("click", function(e) { if (e.target === e.currentTarget) resetar(); });
-document.getElementById("overlay-msg").addEventListener("click", function(e) { if (e.target === e.currentTarget) resetar(); });
+document.getElementById('btn-abrir').addEventListener('click', verificarCodigo);
+document.getElementById('codigo-input').addEventListener('keypress', e => { if (e.key === 'Enter') verificarCodigo(); });
+document.getElementById('btn-enviar-resposta').addEventListener('click', enviarResposta);
+document.getElementById('overlay-codigo').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
+document.getElementById('overlay-msg').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
 
 checkBadge();
-setInterval(checkBadge, 60000);
+setInterval(checkBadge, 10000);
 </script>
 </body>
 </html>
