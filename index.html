@@ -39,9 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 </style>
 </head>
 <body>
-
 <div id="mapa"></div>
-
 <div id="overlay-codigo">
   <div class="caixa-codigo">
     <h3>🔐 Caixa Postal Privada</h3>
@@ -51,7 +49,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
     <div class="erro" id="erro-codigo">Código incorreto</div>
   </div>
 </div>
-
 <div id="overlay-msg">
   <div class="carta">
     <h2>📬 Carta Confidencial</h2>
@@ -66,186 +63,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
     </div>
   </div>
 </div>
-
 <script>
-const CODIGO = "cw";
-const REPO = "minhasempresasb3/minhasempresasb3.github.io";
-const NTFY_TOPICO = "minhasempresasb3-resposta";
-const LAT = -19.057018;
-const LNG = -41.013637;
-const LS_KEY = "msg_lida_hash_v2";
-
-// ===== Persistência robusta (localStorage + window.name fallback) =====
-function storageGet(key) {
-  try {
-    const v = localStorage.getItem(key);
-    if (v !== null) return v;
-  } catch (e) {}
-  try {
-    const data = window.name ? JSON.parse(window.name) : {};
-    if (data && data[key] !== undefined) return data[key];
-  } catch (e) {}
-  return null;
-}
-
-function storageSet(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch (e) {}
-  try {
-    const data = window.name ? JSON.parse(window.name) : {};
-    data[key] = value;
-    window.name = JSON.stringify(data);
-  } catch (e) {}
-}
-
-// ===== Hash determinístico =====
-function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) - h) + str.charCodeAt(i);
-    h |= 0;
-  }
-  return h.toString();
-}
-
-// ===== Decodifica base64 com UTF-8 corretamente =====
-function decodeBase64UTF8(base64) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return new TextDecoder().decode(bytes);
-}
-
-const mapa = L.map("mapa", { zoomControl: true }).setView([LAT, LNG], 17);
-
-const camadaMapa = L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-  maxZoom: 20,
-  subdomains: "abcd",
-  attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
-});
-camadaMapa.addTo(mapa);
-
-const icone = L.divIcon({
-  className: "",
-  html: `
-    <div class="pin-personalizado">
-      <img src="./pin.png" alt="Pin personalizado" onerror="this.style.display='none'">
-      <div class="badge-novo">1</div>
-    </div>
-  `,
-  iconSize: [60, 60],
-  iconAnchor: [30, 60],
-  popupAnchor: [0, -60]
-});
-
-const marcador = L.marker([LAT, LNG], { icon: icone, title: "Caixa Postal Privada" }).addTo(mapa);
-
-marcador.on("click", function() {
-  const overlay = document.getElementById("overlay-codigo");
-  const campo = document.getElementById("codigo-input");
-  overlay.style.display = "flex";
-  campo.value = "";
-  document.getElementById("erro-codigo").style.display = "none";
-  setTimeout(function() { campo.focus(); }, 100);
-});
-
-function resetar() {
-  document.getElementById("overlay-msg").style.display = "none";
-  document.getElementById("overlay-codigo").style.display = "none";
-  document.getElementById("texto-secreto").textContent = "";
-  document.getElementById("codigo-input").value = "";
-  document.getElementById("resposta-texto").value = "";
-  document.getElementById("msg-enviado").style.display = "none";
-  document.getElementById("erro-codigo").style.display = "none";
-  mapa.closePopup();
-}
-
-// Busca o badge DENTRO do elemento do marcador (não globalmente)
-function getBadge() {
-  const el = marcador.getElement();
-  if (!el) return null;
-  return el.querySelector(".badge-novo");
-}
-
-function setBadgeVisible(visivel) {
-  const badge = getBadge();
-  if (!badge) return;
-  if (visivel) badge.classList.remove("oculto");
-  else badge.classList.add("oculto");
-}
-
-async function checkBadge() {
-  try {
-    const resposta = await fetch("https://api.github.com/repos/" + REPO + "/contents/mensagem.txt?ref=main&_=" + Date.now(), { cache: "no-store" });
-    if (!resposta.ok) throw new Error("HTTP " + resposta.status);
-    const data = await resposta.json();
-    const msg = decodeBase64UTF8(data.content).trim();
-    const hashAtual = hash(msg);
-    const hashLida = storageGet(LS_KEY);
-    if (msg && hashAtual !== hashLida) setBadgeVisible(true);
-    else setBadgeVisible(false);
-  } catch (erro) {
-    console.error("Erro ao verificar mensagem:", erro);
-  }
-}
-
-async function mostrarMsg() {
-  try {
-    const resposta = await fetch("https://api.github.com/repos/" + REPO + "/contents/mensagem.txt?ref=main&_=" + Date.now(), { cache: "no-store" });
-    if (!resposta.ok) throw new Error("HTTP " + resposta.status);
-    const data = await resposta.json();
-    const msg = decodeBase64UTF8(data.content).trim();
-    if (!msg) { resetar(); return; }
-    storageSet(LS_KEY, hash(msg));
-    setBadgeVisible(false);
-    document.getElementById("overlay-codigo").style.display = "none";
-    document.getElementById("texto-secreto").textContent = msg;
-    document.getElementById("overlay-msg").style.display = "flex";
-  } catch (erro) {
-    console.error("Erro ao abrir mensagem:", erro);
-    resetar();
-  }
-}
-
-function verificarCodigo() {
-  const valor = document.getElementById("codigo-input").value.trim().toLowerCase();
-  if (valor === CODIGO) mostrarMsg();
-  else document.getElementById("erro-codigo").style.display = "block";
-}
-
-async function enviarResposta() {
-  const texto = document.getElementById("resposta-texto").value.trim();
-  if (!texto) return;
-  try {
-    const resposta = await fetch("https://ntfy.sh/" + NTFY_TOPICO, {
-      method: "POST", body: texto, headers: { "Title": "Resposta do Mapa" }
-    });
-    if (!resposta.ok) throw new Error("Falha ao enviar");
-    document.getElementById("msg-enviado").style.display = "block";
-    document.getElementById("resposta-texto").value = "";
-  } catch (erro) {
-    console.error(erro);
-    alert("Erro ao enviar.");
-  }
-}
-
-document.getElementById("btn-abrir").addEventListener("click", verificarCodigo);
-document.getElementById("codigo-input").addEventListener("keypress", function(e) { if (e.key === "Enter") verificarCodigo(); });
-document.getElementById("btn-enviar-resposta").addEventListener("click", enviarResposta);
-document.getElementById("btn-queimar").addEventListener("click", resetar);
-document.getElementById("overlay-codigo").addEventListener("click", function(e) { if (e.target === e.currentTarget) resetar(); });
-document.getElementById("overlay-msg").addEventListener("click", function(e) { if (e.target === e.currentTarget) resetar(); });
-
-// Aguarda o marcador estar no DOM antes de verificar o badge
-if (marcador.getElement()) {
-  checkBadge();
-} else {
-  marcador.once("add", checkBadge);
-}
-setInterval(checkBadge, 60000);
+const CODIGO="cw",REPO="minhasempresasb3/minhasempresasb3.github.io",NTFY_TOPICO="minhasempresasb3-resposta",LAT=-19.057018,LNG=-41.013637,LS_KEY="msg_lida_hash_v2";
+function storageGet(k){try{const v=localStorage.getItem(k);if(v!==null)return v}catch(e){}try{const d=window.name?JSON.parse(window.name):{};if(d&&d[k]!==undefined)return d[k]}catch(e){}return null}
+function storageSet(k,v){try{localStorage.setItem(k,v)}catch(e){}try{const d=window.name?JSON.parse(window.name):{};d[k]=v;window.name=JSON.stringify(d)}catch(e){}}
+function hash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return h.toString()}
+function decodeBase64UTF8(b){const bin=atob(b),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
+const mapa=L.map("mapa",{zoomControl:true}).setView([LAT,LNG],17);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:20,subdomains:"abcd",attribution:"&copy; OpenStreetMap contributors &copy; CARTO"}).addTo(mapa);
+const icone=L.divIcon({className:"",html:'<div class="pin-personalizado"><img src="./pin.png" alt="Pin" onerror="this.style.display=\'none\'"><div class="badge-novo">1</div></div>',iconSize:[60,60],iconAnchor:[30,60],popupAnchor:[0,-60]});
+const marcador=L.marker([LAT,LNG],{icon:icone,title:"Caixa Postal Privada"}).addTo(mapa);
+marcador.on("click",function(){document.getElementById("overlay-codigo").style.display="flex";document.getElementById("codigo-input").value="";document.getElementById("erro-codigo").style.display="none";setTimeout(()=>document.getElementById("codigo-input").focus(),100)});
+function resetar(){document.getElementById("overlay-msg").style.display="none";document.getElementById("overlay-codigo").style.display="none";document.getElementById("texto-secreto").textContent="";document.getElementById("codigo-input").value="";document.getElementById("resposta-texto").value="";document.getElementById("msg-enviado").style.display="none";document.getElementById("erro-codigo").style.display="none";mapa.closePopup()}
+function getBadge(){const el=marcador.getElement();return el?el.querySelector(".badge-novo"):null}
+function setBadgeVisible(v){const b=getBadge();if(!b)return;v?b.classList.remove("oculto"):b.classList.add("oculto")}
+async function checkBadge(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/mensagem.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json(),msg=decodeBase64UTF8(d.content).trim(),ha=hash(msg),hl=storageGet(LS_KEY);msg&&ha!==hl?setBadgeVisible(true):setBadgeVisible(false)}catch(e){console.error(e)}}
+async function mostrarMsg(){try{const r=await fetch("https://api.github.com/repos/"+REPO+"/contents/mensagem.txt?ref=main&_="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json(),msg=decodeBase64UTF8(d.content).trim();if(!msg){resetar();return}storageSet(LS_KEY,hash(msg));setBadgeVisible(false);document.getElementById("overlay-codigo").style.display="none";document.getElementById("texto-secreto").textContent=msg;document.getElementById("overlay-msg").style.display="flex"}catch(e){console.error(e);resetar()}}
+function verificarCodigo(){const v=document.getElementById("codigo-input").value.trim().toLowerCase();v===CODIGO?mostrarMsg():document.getElementById("erro-codigo").style.display="block"}
+async function enviarResposta(){const t=document.getElementById("resposta-texto").value.trim();if(!t)return;try{const r=await fetch("https://ntfy.sh/"+NTFY_TOPICO,{method:"POST",body:t,headers:{"Title":"Resposta do Mapa"}});if(!r.ok)throw new Error("Falha");document.getElementById("msg-enviado").style.display="block";document.getElementById("resposta-texto").value=""}catch(e){console.error(e);alert("Erro ao enviar.")}}
+document.getElementById("btn-abrir").addEventListener("click",verificarCodigo);document.getElementById("codigo-input").addEventListener("keypress",e=>{if(e.key==="Enter")verificarCodigo()});document.getElementById("btn-enviar-resposta").addEventListener("click",enviarResposta);document.getElementById("btn-queimar").addEventListener("click",resetar);document.getElementById("overlay-codigo").addEventListener("click",e=>{if(e.target===e.currentTarget)resetar()});document.getElementById("overlay-msg").addEventListener("click",e=>{if(e.target===e.currentTarget)resetar()});
+if(marcador.getElement())checkBadge();else marcador.once("add",checkBadge);setInterval(checkBadge,60000);
 </script>
 </body>
 </html>
