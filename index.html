@@ -106,8 +106,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 const CODIGO = "cw";
 const REPO = "minhasempresasb3/minhasempresasb3.github.io";
 const NTFY_TOPICO = "minhasempresasb3-resposta";
-let mapa = null;
-let marcador = null;
+const LAT = -19.056974;
+const LNG = -41.013636;
 
 function hash(str) {
   let h = 0;
@@ -115,26 +115,23 @@ function hash(str) {
   return h.toString();
 }
 
-function criarMapa(lat, lng) {
-  if (mapa) { mapa.remove(); }
-  mapa = L.map('mapa', { zoomControl: false }).setView([lat, lng], 17);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapa);
+const mapa = L.map('mapa', { zoomControl: false }).setView([LAT, LNG], 17);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapa);
 
-  const icone = L.divIcon({
-    className: 'pin-casa',
-    html: '<div class="pin-casa"><div class="icone">👨🏻‍🦱</div><div class="badge visivel" id="badge-novo">1</div></div>',
-    iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40]
-  });
-  marcador = L.marker([lat, lng], { icon: icone }).addTo(mapa);
-  marcador.bindPopup('<div style="font-size:13px;color:#555;"><h4 style="margin:0 0 5px;font-size:14px;color:#333;">📍 Local do remetente</h4>Carta enviada daqui</div>');
+const icone = L.divIcon({
+  className: 'pin-casa',
+  html: '<div class="pin-casa"><div class="icone">👨🏻‍🦱</div><div class="badge visivel" id="badge-novo">1</div></div>',
+  iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40]
+});
+const marcador = L.marker([LAT, LNG], { icon: icone }).addTo(mapa);
+marcador.bindPopup('<div style="font-size:13px;color:#555;"><h4 style="margin:0 0 5px;font-size:14px;color:#333;">📍 Local do remetente</h4>Carta enviada daqui</div>');
 
-  marcador.on('click', () => {
-    document.getElementById('overlay-codigo').style.display = 'flex';
-    document.getElementById('codigo-input').value = '';
-    document.getElementById('codigo-input').focus();
-    document.getElementById('erro-codigo').style.display = 'none';
-  });
-}
+marcador.on('click', () => {
+  document.getElementById('overlay-codigo').style.display = 'flex';
+  document.getElementById('codigo-input').value = '';
+  document.getElementById('codigo-input').focus();
+  document.getElementById('erro-codigo').style.display = 'none';
+});
 
 function resetar() {
   document.getElementById('overlay-msg').style.display = 'none';
@@ -144,59 +141,35 @@ function resetar() {
   document.getElementById('resposta-texto').value = '';
   document.getElementById('msg-enviado').style.display = 'none';
   document.getElementById('erro-codigo').style.display = 'none';
-  if (mapa) mapa.closePopup();
+  mapa.closePopup();
 }
 
-async function carregarDados() {
+async function checkBadge() {
   try {
-    const [rMsg, rCoords] = await Promise.all([
-      fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'}),
-      fetch('https://api.github.com/repos/' + REPO + '/contents/coords.txt?ref=main&_=' + Date.now(), {cache: 'no-store'})
-    ]);
-
-    const dataMsg = await rMsg.json();
-    const msg = atob(dataMsg.content).trim();
-
-    const dataCoords = await rCoords.json();
-    const coords = atob(dataCoords.content).trim().split(',');
-    const lat = parseFloat(coords[0]);
-    const lng = parseFloat(coords[1]);
-
-    criarMapa(lat, lng);
-
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const data = await r.json();
+    const msg = atob(data.content).trim();
     const hashAtual = hash(msg);
     const hashLida = localStorage.getItem('msg_lida_hash');
     const badge = document.getElementById('badge-novo');
-    if (msg && hashAtual !== hashLida) {
-      badge.classList.add('visivel');
-    } else {
-      badge.classList.remove('visivel');
-    }
-
-  } catch (e) {
-    criarMapa(-19.056974, -41.013636);
-  }
+    if (msg && hashAtual !== hashLida) badge.classList.add('visivel');
+    else badge.classList.remove('visivel');
+  } catch (e) {}
 }
 
 async function mostrarMsg() {
   try {
-    const apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/mensagem.txt';
-    const r = await fetch(apiUrl + '?ref=main&_=' + Date.now(), {cache: 'no-store'});
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/contents/mensagem.txt?ref=main&_=' + Date.now(), {cache: 'no-store'});
     const data = await r.json();
     const msg = atob(data.content).trim();
-
     if (!msg) { resetar(); return; }
 
     localStorage.setItem('msg_lida_hash', hash(msg));
     document.getElementById('badge-novo').classList.remove('visivel');
 
     document.getElementById('overlay-codigo').style.display = 'none';
-    const overlay = document.getElementById('overlay-msg');
-    const textoEl = document.getElementById('texto-secreto');
-
-    textoEl.textContent = msg;
-    overlay.style.display = 'flex';
-
+    document.getElementById('texto-secreto').textContent = msg;
+    document.getElementById('overlay-msg').style.display = 'flex';
     document.getElementById('btn-queimar').onclick = resetar;
 
   } catch (e) { resetar(); }
@@ -226,8 +199,8 @@ document.getElementById('btn-enviar-resposta').addEventListener('click', enviarR
 document.getElementById('overlay-codigo').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
 document.getElementById('overlay-msg').addEventListener('click', e => { if (e.target === e.currentTarget) resetar(); });
 
-carregarDados();
-setInterval(carregarDados, 15000);
+checkBadge();
+setInterval(checkBadge, 10000);
 </script>
 </body>
 </html>
