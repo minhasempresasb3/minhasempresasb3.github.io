@@ -25,12 +25,12 @@
 />
 
 <script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 
 
 <!-- ====================================================== -->
-<!-- ESTILOS -->
+<!-- CSS -->
 <!-- ====================================================== -->
 
 <style>
@@ -83,13 +83,16 @@ body {
 
   height: 100vh;
 
+  background:
+    #d7eaf0;
+
   z-index: 1;
 
 }
 
 
 /* ====================================================== */
-/* PIN */
+/* PIN PERSONALIZADO */
 /* ====================================================== */
 
 .pin-personalizado {
@@ -144,21 +147,29 @@ body {
 
   height: 22px;
 
-  background: #ff4444;
+  background:
+    #ff4444;
 
-  color: white;
+  color:
+    white;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  font-weight: bold;
+  font-weight:
+    bold;
 
   box-shadow:
     0 2px 6px
@@ -172,7 +183,8 @@ body {
 
 .badge-novo.oculto {
 
-  display: none;
+  display:
+    none;
 
 }
 
@@ -209,39 +221,52 @@ body {
 
 #overlay-codigo {
 
-  display: none;
+  display:
+    none;
 
-  position: fixed;
+  position:
+    fixed;
 
-  inset: 0;
+  inset:
+    0;
 
-  z-index: 10000;
+  z-index:
+    10000;
 
   background:
     rgba(0,0,0,0.85);
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  align-items: center;
+  align-items:
+    center;
 
-  padding: 20px;
+  padding:
+    20px;
 
 }
 
 
 .caixa-codigo {
 
-  background: white;
+  background:
+    white;
 
-  border-radius: 16px;
+  border-radius:
+    16px;
 
-  padding: 30px;
+  padding:
+    30px;
 
-  max-width: 320px;
+  max-width:
+    320px;
 
-  width: 100%;
+  width:
+    100%;
 
-  text-align: center;
+  text-align:
+    center;
 
   box-shadow:
     0 10px 40px
@@ -252,46 +277,60 @@ body {
 
 .caixa-codigo h3 {
 
-  font-size: 16px;
+  font-size:
+    16px;
 
-  color: #333;
+  color:
+    #333;
 
-  margin-bottom: 5px;
+  margin-bottom:
+    5px;
 
 }
 
 
 .caixa-codigo p {
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  color: #888;
+  color:
+    #888;
 
-  margin-bottom: 20px;
+  margin-bottom:
+    20px;
 
 }
 
 
 .caixa-codigo input {
 
-  width: 100%;
+  width:
+    100%;
 
-  padding: 14px;
+  padding:
+    14px;
 
   border:
     2px solid #ddd;
 
-  border-radius: 10px;
+  border-radius:
+    10px;
 
-  font-size: 18px;
+  font-size:
+    18px;
 
-  text-align: center;
+  text-align:
+    center;
 
-  letter-spacing: 3px;
+  letter-spacing:
+    3px;
 
-  margin-bottom: 15px;
+  margin-bottom:
+    15px;
 
-  outline: none;
+  outline:
+    none;
 
 }
 
@@ -306,24 +345,32 @@ body {
 
 .caixa-codigo button {
 
-  width: 100%;
+  width:
+    100%;
 
-  padding: 14px;
+  padding:
+    14px;
 
   background:
     #007AFF;
 
-  color: white;
+  color:
+    white;
 
-  border: none;
+  border:
+    none;
 
-  border-radius: 10px;
+  border-radius:
+    10px;
 
-  font-size: 15px;
+  font-size:
+    15px;
 
-  font-weight: 600;
+  font-weight:
+    600;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
 }
 
@@ -333,37 +380,47 @@ body {
   color:
     #ff4444;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  margin-top: 10px;
+  margin-top:
+    10px;
 
-  display: none;
+  display:
+    none;
 
 }
 
 
 /* ====================================================== */
-/* OVERLAY DA MENSAGEM */
+/* OVERLAY DA CARTA */
 /* ====================================================== */
 
 #overlay-msg {
 
-  display: none;
+  display:
+    none;
 
-  position: fixed;
+  position:
+    fixed;
 
-  inset: 0;
+  inset:
+    0;
 
-  z-index: 9999;
+  z-index:
+    9999;
 
   background:
     rgba(0,0,0,0.9);
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  align-items: center;
+  align-items:
+    center;
 
-  padding: 20px;
+  padding:
+    20px;
 
 }
 
@@ -377,19 +434,26 @@ body {
       #e8dcc0 100%
     );
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
-  padding: 35px;
+  padding:
+    35px;
 
-  max-width: 420px;
+  max-width:
+    420px;
 
-  width: 100%;
+  width:
+    100%;
 
-  max-height: 90vh;
+  max-height:
+    90vh;
 
-  overflow-y: auto;
+  overflow-y:
+    auto;
 
-  text-align: center;
+  text-align:
+    center;
 
   box-shadow:
     0 0 50px
@@ -408,7 +472,8 @@ body {
     transform:
       scale(0.8);
 
-    opacity: 0;
+    opacity:
+      0;
 
   }
 
@@ -417,7 +482,8 @@ body {
     transform:
       scale(1);
 
-    opacity: 1;
+    opacity:
+      1;
 
   }
 
@@ -433,14 +499,17 @@ body {
     "Courier New",
     monospace;
 
-  font-size: 15px;
+  font-size:
+    15px;
 
-  margin-bottom: 5px;
+  margin-bottom:
+    5px;
 
   text-transform:
     uppercase;
 
-  letter-spacing: 2px;
+  letter-spacing:
+    2px;
 
 }
 
@@ -450,9 +519,11 @@ body {
   color:
     #8b7355;
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  margin-bottom: 20px;
+  margin-bottom:
+    20px;
 
 }
 
@@ -466,15 +537,20 @@ body {
     "Courier New",
     monospace;
 
-  font-size: 17px;
+  font-size:
+    17px;
 
-  line-height: 1.7;
+  line-height:
+    1.7;
 
-  word-break: break-word;
+  word-break:
+    break-word;
 
-  margin-bottom: 20px;
+  margin-bottom:
+    20px;
 
-  min-height: 30px;
+  min-height:
+    30px;
 
 }
 
@@ -493,31 +569,38 @@ body {
   color:
     #8b4513;
 
-  border-radius: 8px;
+  border-radius:
+    8px;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   font-family:
     "Courier New",
     monospace;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  font-weight: bold;
+  font-weight:
+    bold;
 
 }
 
 
 .resposta-area {
 
-  margin-top: 20px;
+  margin-top:
+    20px;
 
   border-top:
     1px solid #c4b090;
 
-  padding-top: 15px;
+  padding-top:
+    15px;
 
-  text-align: left;
+  text-align:
+    left;
 
 }
 
@@ -531,9 +614,11 @@ body {
     "Courier New",
     monospace;
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  margin-bottom: 8px;
+  margin-bottom:
+    8px;
 
   text-transform:
     uppercase;
@@ -543,7 +628,8 @@ body {
 
 .resposta-area textarea {
 
-  width: 100%;
+  width:
+    100%;
 
   background:
     rgba(255,255,255,0.5);
@@ -554,30 +640,38 @@ body {
   border:
     1px solid #8b4513;
 
-  padding: 10px;
+  padding:
+    10px;
 
-  border-radius: 6px;
+  border-radius:
+    6px;
 
   font-family:
     "Courier New",
     monospace;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  min-height: 60px;
+  min-height:
+    60px;
 
-  resize: vertical;
+  resize:
+    vertical;
 
-  margin-bottom: 8px;
+  margin-bottom:
+    8px;
 
 }
 
 
 .btn-enviar {
 
-  width: 100%;
+  width:
+    100%;
 
-  padding: 10px;
+  padding:
+    10px;
 
   background:
     #8b4513;
@@ -585,19 +679,24 @@ body {
   color:
     #f5f5dc;
 
-  border: none;
+  border:
+    none;
 
-  border-radius: 6px;
+  border-radius:
+    6px;
 
-  font-weight: 600;
+  font-weight:
+    600;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   font-family:
     "Courier New",
     monospace;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
 }
 
@@ -611,13 +710,17 @@ body {
     "Courier New",
     monospace;
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  margin-top: 8px;
+  margin-top:
+    8px;
 
-  display: none;
+  display:
+    none;
 
-  text-align: center;
+  text-align:
+    center;
 
 }
 
@@ -637,7 +740,7 @@ body {
 
 
 <!-- ====================================================== -->
-<!-- TELA DO CÓDIGO -->
+<!-- LOGIN -->
 <!-- ====================================================== -->
 
 <div id="overlay-codigo">
@@ -676,7 +779,7 @@ body {
 
 
 <!-- ====================================================== -->
-<!-- TELA DA CARTA -->
+<!-- CARTA -->
 <!-- ====================================================== -->
 
 <div id="overlay-msg">
@@ -744,7 +847,8 @@ body {
 // CONFIGURAÇÕES
 // ==========================================================
 
-const CODIGO = "cw";
+const CODIGO =
+  "cw";
 
 const REPO =
   "minhasempresasb3/minhasempresasb3.github.io";
@@ -760,7 +864,7 @@ const LNG =
 
 
 // ==========================================================
-// FUNÇÃO HASH
+// HASH
 // ==========================================================
 
 function hash(str) {
@@ -795,7 +899,8 @@ const mapa =
   L.map(
     "mapa",
     {
-      zoomControl: true
+      zoomControl:
+        true
     }
   )
   .setView(
@@ -805,31 +910,45 @@ const mapa =
 
 
 // ==========================================================
-// CAMADA DO OPENSTREETMAP
+// CAMADA DO MAPA
 // ==========================================================
 
-L.tileLayer(
+// CARTO VOYAGER
+// Usado para evitar o problema que ocorreu com o
+// carregamento dos tiles do OpenStreetMap.
 
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+const camadaMapa =
 
-  {
+  L.tileLayer(
 
-    maxZoom: 19,
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
 
-    attribution:
-      "&copy; OpenStreetMap contributors"
+    {
 
-  }
+      maxZoom:
+        20,
 
-)
-.addTo(mapa);
+      subdomains:
+        "abcd",
+
+      attribution:
+        "&copy; OpenStreetMap contributors &copy; CARTO"
+
+    }
+
+  );
+
+
+camadaMapa
+  .addTo(mapa);
 
 
 // ==========================================================
-// CRIAR PIN PERSONALIZADO
+// PIN PERSONALIZADO
 // ==========================================================
 
 const icone =
+
   L.divIcon({
 
     className:
@@ -843,12 +962,7 @@ const icone =
 
         <img
           src="./1000498337.png"
-          alt="Pin"
-          onerror="
-            console.error(
-              'Erro ao carregar 1000498337.png'
-            );
-          "
+          alt="Pin personalizado"
         >
 
         <div
@@ -875,7 +989,7 @@ const icone =
 
 
 // ==========================================================
-// CRIAR MARCADOR
+// MARCADOR
 // ==========================================================
 
 const marcador =
@@ -895,6 +1009,7 @@ const marcador =
     }
 
   )
+
   .addTo(mapa);
 
 
@@ -929,7 +1044,7 @@ marcador.bindPopup(`
 
 
 // ==========================================================
-// CLICAR NO PIN
+// CLIQUE NO PIN
 // ==========================================================
 
 marcador.on(
@@ -938,19 +1053,24 @@ marcador.on(
 
   function() {
 
-    document
-      .getElementById(
-        "overlay-codigo"
-      )
-      .style.display =
-        "flex";
+    const overlay =
+
+      document
+        .getElementById(
+          "overlay-codigo"
+        );
 
 
     const campo =
+
       document
         .getElementById(
           "codigo-input"
         );
+
+
+    overlay.style.display =
+      "flex";
 
 
     campo.value =
@@ -1082,7 +1202,7 @@ async function checkBadge() {
     if (!resposta.ok) {
 
       throw new Error(
-        "Erro HTTP: "
+        "HTTP "
         +
         resposta.status
       );
@@ -1095,6 +1215,7 @@ async function checkBadge() {
 
 
     const msg =
+
       atob(
         data.content
       )
@@ -1106,12 +1227,14 @@ async function checkBadge() {
 
 
     const hashLida =
+
       localStorage.getItem(
         "msg_lida_hash"
       );
 
 
     const badge =
+
       document
         .getElementById(
           "badge-novo"
@@ -1139,7 +1262,6 @@ async function checkBadge() {
       );
 
     }
-
 
   }
 
@@ -1188,7 +1310,7 @@ async function mostrarMsg() {
     if (!resposta.ok) {
 
       throw new Error(
-        "Erro HTTP: "
+        "HTTP "
         +
         resposta.status
       );
@@ -1201,6 +1323,7 @@ async function mostrarMsg() {
 
 
     const msg =
+
       atob(
         data.content
       )
@@ -1292,7 +1415,8 @@ function verificarCodigo() {
 
   if (
 
-    valor === CODIGO
+    valor ===
+    CODIGO
 
   ) {
 
@@ -1370,7 +1494,7 @@ async function enviarResposta() {
     if (!resposta.ok) {
 
       throw new Error(
-        "Erro ao enviar resposta"
+        "Falha ao enviar"
       );
 
     }
@@ -1410,7 +1534,7 @@ async function enviarResposta() {
 
 
 // ==========================================================
-// EVENTO BOTÃO ABRIR
+// EVENTOS
 // ==========================================================
 
 document
@@ -1425,10 +1549,6 @@ document
 
   );
 
-
-// ==========================================================
-// ENTER NO CÓDIGO
-// ==========================================================
 
 document
   .getElementById(
@@ -1456,10 +1576,6 @@ document
   );
 
 
-// ==========================================================
-// BOTÃO ENVIAR RESPOSTA
-// ==========================================================
-
 document
   .getElementById(
     "btn-enviar-resposta"
@@ -1473,9 +1589,18 @@ document
   );
 
 
-// ==========================================================
-// CLICAR FORA DO LOGIN
-// ==========================================================
+document
+  .getElementById(
+    "btn-queimar"
+  )
+  .addEventListener(
+
+    "click",
+
+    resetar
+
+  );
+
 
 document
   .getElementById(
@@ -1502,10 +1627,6 @@ document
 
   );
 
-
-// ==========================================================
-// CLICAR FORA DA CARTA
-// ==========================================================
 
 document
   .getElementById(
@@ -1534,31 +1655,14 @@ document
 
 
 // ==========================================================
-// BOTÃO QUEIMAR CARTA
-// ==========================================================
-
-document
-  .getElementById(
-    "btn-queimar"
-  )
-  .addEventListener(
-
-    "click",
-
-    resetar
-
-  );
-
-
-// ==========================================================
-// INICIAR VERIFICAÇÃO
+// INICIALIZAÇÃO
 // ==========================================================
 
 checkBadge();
 
 
 // ==========================================================
-// VERIFICAR A CADA 10 SEGUNDOS
+// ATUALIZAR BADGE A CADA 10 SEGUNDOS
 // ==========================================================
 
 setInterval(
